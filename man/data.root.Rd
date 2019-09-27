@@ -4,12 +4,14 @@
 \alias{data.root}
 \title{To calculate the objective function values}
 \usage{
-data.root(d, y, my_env)
+data.root(d, y, c, my_env)
 }
 \arguments{
 \item{d}{A numeric: distance or range of data}
 
 \item{y}{A numeric: stratum width}
+
+\item{c}{A numeric: stratum cost}
 
 \item{my_env}{The environment my_env contains the constants and outputs
 from various calculations carried out by other key functions}
@@ -21,12 +23,6 @@ from various calculations carried out by other key functions}
 This function is called within other important functions in the stratifyR
 package to calculate the objective function values at systematic incremental
 progressions of stratum width and range of the data
-}
-\examples{
-\dontrun{
-data.root()
-}
-
 }
 \author{
 Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>

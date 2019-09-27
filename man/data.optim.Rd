@@ -34,12 +34,6 @@ the objective function values using the brute-force algorithm and stores those
 values in the matrices and keeps a copy in my_env so that a global minimum
 could be obtained.
 }
-\examples{
-\dontrun{
-data.optim()
-}
-
-}
 \author{
 Karuna Reddy <reddy_k@usp.ac.fj>\cr M
 GM Khan <khan_mg@usp.ac.fj>

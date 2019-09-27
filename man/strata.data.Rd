@@ -4,7 +4,7 @@
 \alias{strata.data}
 \title{Stratification of Univariate Survey Population Using the Data}
 \usage{
-strata.data(data, h, n)
+strata.data(data, h, n, cost = FALSE, ch = NULL)
 }
 \arguments{
 \item{data}{A vector of values of the survey variable y for
@@ -13,18 +13,24 @@ which the OSB are determined}
 \item{h}{A numeric: denotes the number of strata to be created.}
 
 \item{n}{A numeric: denotes a fixed total sample size.}
+
+\item{cost}{A logical: has default cost=FALSE. If it is a stratum-cost problem,
+cost=TRUE, with which, one must provide the Ch parameter.}
+
+\item{ch}{A numeric: denotes a vector of stratum costs. When cost=FALSE, it 
+has a default of NULL.}
 }
 \value{
-\code{strata.distr} returns Optimum Strata Boundaries (OSB),
+\code{strata.data} returns Optimum Strata Boundaries (OSB),
 stratum weights (Wh), stratum variances (Vh), Optimum Sample Sizes
-(nh), stratum population sizes (Nh).
+(nh), stratum population sizes (Nh) and sampling fraction (fh).
 }
 \description{
 This function takes in the univariate population data
 (argument \code{data}) and a fixed sample size (n)
 to compute the optimum stratum boundaries (OSB) for a
 given number of strata (L), optimum sample sizes (nh),
-etc directly from the data. The main idea used is from
+etc. directly from the data. The main idea used is from
 Khan et al (2008) whereby the problem of stratification
 is formulated into a Mathematical Programming Problem (MPP)
 using the best-fit frequency distribution and its parameters
@@ -33,21 +39,39 @@ OSB using a Dynamic Programming (DP) solution procedure.
 }
 \examples{
 \dontrun{
+data <- rweibull(1000, shape=2, scale = 1.5)
+hist(data)
+obj <- strata.data(data, h = 2, n=300)
+summary(obj)
+#-------------------------------------------------------------
 data(anaemia)
 Iron <- anaemia$Iron
-strata.data(Iron, h = 2, n=350)
-#--------------------------------------------------------
+res <- strata.data(Iron, h = 2, n=350)
+summary(res)
+#-------------------------------------------------------------
 data(SHS) #Household Spending data from stratification package
 weight <- SHS$WEIGHT
-hist(weight)
-length(weight)
-strata.data(weight, h = 2, n=500)
-#------------------------------------------
+hist(weight); length(weight)
+res <- strata.data(weight, h = 2, n=500)
+summary(res)
+#-------------------------------------------------------------
 data(sugarcane)
 Production <- sugarcane$Production
 hist(Production)
-strata.data(Production, h = 2, n=1000)
-#------------------------------------------
+res <- strata.data(Production, h = 2, n=1000)
+summary(res)
+#-------------------------------------------------------------
+#The function be dynamically used to visualize the the strata boundaries, 
+#for 2 strata, over the density (or observations) of the "mag" variable 
+#from the quakes data (with purrr and ggplot2 packages loaded).
+output <- quakes \%>\%
+          pluck("mag") \%>\%
+          strata.data(h = 2, n = 300)
+quakes \%>\% 
+      ggplot(aes(x = mag)) +
+      geom_density(fill = "blue", colour = "black", alpha = 0.3) +
+      geom_vline(xintercept = output$OSB, linetype = "dotted", color = "red")
+#-------------------------------------------------------------
 }
 
 }

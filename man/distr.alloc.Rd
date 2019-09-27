@@ -21,12 +21,6 @@ after OSB have been determined. It uses the boundaries to calculate the stratum
 sample allocations using Neyman allocation for all individual strata using the
 underlying distribution of the population.
 }
-\examples{
-\dontrun{
-distr.alloc()
-}
-
-}
 \author{
 Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 }

@@ -19,12 +19,6 @@ This function is called in data.optim() or distr.optim()
 which basically compares and returns the smaller value out
 of two given sets of values.
 }
-\examples{
-\dontrun{
-minim.val(2,3)
-}
-
-}
 \author{
 Karuna Reddy <reddy_k@usp.ac.fj>\cr
 MGM Khan <khan_mg@usp.ac.fj>

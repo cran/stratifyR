@@ -21,11 +21,6 @@
 #'
 #' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 #'
-#' @examples
-#' \dontrun{
-#' get.dist()
-#' }
-#'
 get.dist <- function(data, my_env) #data is a single column data frame or numeric
 {
    #initialize some key variables
@@ -84,7 +79,7 @@ get.dist <- function(data, my_env) #data is a single column data frame or numeri
    param <- params[[distrib]]
 
    #combine both results in a list
-   result <- list("distr"=distrib, "params"=param)#best-fit distrib with its params for scaled data
+   result <- list("distr"=distrib, "params"=param) #best-fit distrib with its params for scaled data
 
    return(result)
 }

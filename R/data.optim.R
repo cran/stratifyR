@@ -22,17 +22,14 @@
 #' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr M
 #' GM Khan <khan_mg@usp.ac.fj>
 #'
-#'@examples
-#'\dontrun{
-#'data.optim()
-#'}
-#'
 data.optim <- function(k, n, incf, minYk, maxYk, isFirstRun=TRUE, my_env)
 {
    if(length(k) > 1 || !is.numeric(k) || !is.finite(k) || k < 1)
       stop("choice of 'k' is not valid")
 
    d <- n*incf
+   
+   ch <- my_env$ch #get stratum costs 
 
    miny <- 0
    val <- 0
@@ -40,14 +37,16 @@ data.optim <- function(k, n, incf, minYk, maxYk, isFirstRun=TRUE, my_env)
    if(k == 1)
    {
       y <- d
-      dblRetVal <- data.root(d, y, my_env)
+      c <- ch[k]
+      dblRetVal <- data.root(d, y, c, my_env)
    }
    else
    {
       for(i in minYk:(maxYk-1))
       {
          y <- i*incf
-         root <- data.root(d, y, my_env)
+         c <- ch[k]
+         root <- data.root(d, y, c, my_env)
          if(root != -1)
          {
             col <- as.integer(n-i)

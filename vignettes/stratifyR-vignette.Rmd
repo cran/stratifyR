@@ -2,7 +2,7 @@
 title: "R Package 'stratifyR'"
 author: "K.G. Reddy & M.G.M. Khan"
 package: stratifyR
-date: April 11, 2018
+date: September 26, 2019
 output:
   rmarkdown::html_document:
     toc: true
@@ -32,9 +32,9 @@ knitr::opts_chunk$set(
 
 **Title** Optimal Stratification of Univariate Populations
 
-**Version** 1.0-1
+**Version** 1.0-2
 
-**Date** 2018-04-11
+**Date** 2019-09-26
 
 **Author** Karuna G. Reddy, M.G.M. Khan
 
@@ -54,7 +54,7 @@ knitr::opts_chunk$set(
 
 **Repository** CRAN
 
-**Date/Publication** 2018-04-09 13:59:59
+**Date/Publication** 2019-09-26 10:00:00
 
 # Introduction
 \url{}
@@ -245,7 +245,8 @@ In equation (13), it is also worth noting that the OSB $(y_{h}, y_{h-1})$ are so
 1\leq n_{h}\leq N_{h}, \tag{14}
 \end{equation}
 
-where $N_{h}=NW_{h}$. Thus, the restriction (14) indicates that the $h^{th}$ stratum must form with at least one unit and also avoid the problem of over-sampling.
+where $N_{h}=NW_{h}$. Thus, the restriction (14) indicates that the $h^
+{th}$ stratum must form with at least one unit and also avoid the problem of over-sampling.
 
 # Overview of Package Functionalities
 
@@ -265,28 +266,31 @@ If it is a data-based problem, the function used is **strata.data()** and the us
 
 \textbf{Description}
 
-This function computes the OSB, OSS, and other important quantities from univariate survey populations by employing the methodology proposed by @Khan2002 @khan2003theory, @Khan2005, @khan2008determining, @Khan2009, @Nand2009, @khan2015determining, @khan2015designing. Their method uses the estimated distribution of the data and formulates the problem of determining OSB as a Mathematical Programming Problem which is an optimization problem that is solved by the DP technque. The OSB obtained are optimal solutions that are used to calculate the OSS under Neyman allocation. The usage and arguments are as follows:
+This function computes the OSB, OSS, and other important quantities from univariate survey populations by employing the methodology proposed by @Khan2002 @khan2003theory, @Khan2005, @khan2008determining, @Khan2009, @Nand2009, @khan2015determining, @khan2015designing, @reddy2018optimum and @reddy2019optimal. Their method uses the estimated distribution of the data and formulates the problem of determining OSB as a Mathematical Programming Problem which is an optimization problem that is solved by the DP technque. The OSB obtained are optimal solutions that are used to calculate the OSS under Neyman allocation. The usage and arguments are as follows:
 
 \textbf{Usage}
 
-        strata.data(data, h = 2, n = NULL)
+        strata.data(data, h, n, cost=FALSE, ch=NULL)
 
 \textbf{Arguments}
 
         data - A vector: data containing every unit of the survey population
         h - A numeric: number of strata to be sampled. The default is 2
         n - A numeric: fixed total sample size
-
+        cost - A logical: stratum cost. Default cost=FALSE. 
+        ch - A numeric: denotes a vector of stratum costs. Default ch=NULL.
+        
 \textbf{Algorithm}
 
 \begin{enumerate}
-	\item **strata.data()** is invoked, which is like the main function where everything happens. The arguments that need to be specified during the invocation are: data, $h$ (number of strata) and $n$ (fixed total sample size).
+	\item **strata.data()** is invoked, which is like the main function which belongs to class "strata" which provides a sequence of codes that lead to the final results. The arguments that need to be specified during the invocation are: data, $h$ (number of strata) and $n$ (fixed total sample size). One can also provide cost and stratum costs if it involves a stratification problem with sampling cost. The function call is normally stored in an object, which is of class "strata".
 	\item It creates a new environment called $my\_env$ and stores the data, $h$ and $n$. Data is also scaled here by dividing with the maximum value of the data. Important quantities like maximum value for real data, initial value, final value and distance (range) for scaled data are stored in $my\_env$.
 	\item The **get.dist()** function takes in data and quantities stored in $my\_env$ as arguments. From a set of ten different distributions (`unif', `Triangular', `right-Triangular', `gamma', `weibull', `norm', `lnorm', `exp', `pareto' and `cauchy'), it chooses the best-fit distribution by looking at the lowest AIC. Parameter estimates for the best-fit distribution together with the smallest AIC are returned as a list.
 	\item When **create.mat()** function is called, it creates a 2D matrices from a set of defined constants to store values of the objective function.
 	\item The **data.optim()** function then computes 3dp and 6dp solutions respectively for different values of the objective function values at different incremental progressions of the $y$ value on the range of the dataset. **data.optim()** has **data.root()** in it to calculate the objective function values which are stored in the 2D-matrices.
    	\item The **data.alloc()** function computes the sample sizes by using Neyman allocation. The OSB obtained in the previous steps are used to calculate the stratum weights and stratum population sizes from the data - these are used to obtain the stratum sample sizes.
-   	\item The **data.res()** function is then finally called which prints important quantities and results obtained through the above procedures.
+   	\item The **summary.strata()** function defines the method for the "strata" class that has been created 
+in the constructor function strata.data(). The function extracts all individual objects from the "strata" class object and combines them into dataframes before writing the formatted outputs to the console.
 \end{enumerate}
 
 \textbf{Application}
@@ -300,7 +304,8 @@ mag <- quakes$mag
 length(mag)
 hist(mag) #to see the distribution
 library(stratifyR)
-strata.data(mag, h = 2, n=300) # a 2-strata solution
+res <- strata.data(mag, h = 2, n=300) # a 2-strata solution
+summary(res)
 ```
 
 All calculations have been rounded off to 2 decimal places, hence, the individual stratum solutions provided in the tables may not always add up to the totals.
@@ -319,11 +324,11 @@ This function is also used to compute the OSB, OSS, and other important quantiti
 
 \textbf{Usage}
 
-        strata.distr(h = 2, initval = NULL, dist = NULL, 
+        strata.distr(h, initval = NULL, dist = NULL, 
                      distr = c("pareto", "triangle", "rtriangle", "weibull", "gamma", 
                      "exp", "unif","norm", "lnorm", "cauchy"), params = c(shape=0, 
                      scale=0, rate=0, gamma=0, location=0, mean=0, sd=0, meanlog=0, 
-                     sdlog=0, min=0, max=0, mode=0), n=NULL, N=NULL)
+                     sdlog=0, min=0, max=0, mode=0), n, N, cost=FALSE, ch=NULL)
 
 \textbf{Arguments}
 
@@ -334,7 +339,9 @@ This function is also used to compute the OSB, OSS, and other important quantiti
         params - A list: parameters of the assumed distribution 
         n - A numeric: fixed total sample size  
         N - A numeric: fixed population size
-
+        cost - A logical: stratum cost. Default cost=FALSE. 
+        ch - A numeric: denotes a vector of stratum costs. Default ch=NULL.
+        
 \textbf{Algorithm}
 
 The algorithm for **strata.distr()** is quite similar to the **strata.data()** for the contruction of OSB. It is only at the sample allocation (OSS) stage that the two are different. **strata.distr()** is the main function and once the OSB have been computed, this function uses the **distr.alloc()** function which uses the numerical integration rules for different distibutions (i.e., the equations (4)-(6)) to compute the OSS.
@@ -349,8 +356,9 @@ depth <- quakes$depth
 hist(depth) #see distribution
 min(depth); max(depth); d=max(depth)-min(depth);d #min, max and range of data 
 # the 2-strata solution is
-strata.distr(h=2, initval=40, dist=640, distr = "triangle",
+res <- strata.distr(h=2, initval=40, dist=640, distr = "triangle",
              params = c(min=39.99998, max=680, mode=39.99999), n=300, N=1000)
+summary(res)
 ```
 
 # Application to Numerous Survey Populations
@@ -427,14 +435,16 @@ hist(pareto_data, breaks=100)
 min(pareto_data); max(pareto_data); d=max(pareto_data)-min(pareto_data);d
 fit <- fitdist(pareto_data, "pareto", start = list(shape = 1, scale = 500))
 fit
-strata.data(pareto_data, h = 2, n=500) # a 2-strata solution
+res <- strata.data(pareto_data, h = 2, n=500) # a 2-strata solution
+summary(res)
 ```
 
 Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Pareto Type II population. Let us assume from past knowledge that the study variable in the population follows Pareto Type II distribution with the given attributes such as the $shape=5.05, scale=8.20, initial\,value=0.15$ and $distance=38.55$. Then, if a sample of size $n=500$ is drawn from the population of size $N=5000$, we can execute the following command to obtain the results:
 
 ```{r include=TRUE}
-strata.distr(h=2, initval=0.15, dist=38.55, distr = "pareto",
+res <- strata.distr(h=2, initval=0.15, dist=38.55, distr = "pareto",
              params = c(shape=5.05, scale=8.20), n=500, N=5000)
+summary(res)
 ```
 
 ## Stratification for a Survey Variable with Triangular Distribution
@@ -484,7 +494,8 @@ To construct the OSB ($h = 2$) for the `final_marks' data with a fixed total sam
 data(math)
 final_marks <- math$final_marks
 hist(final_marks)
-strata.data(final_marks, h = 2, n=150) # a 2-strata solution
+res <- strata.data(final_marks, h = 2, n=150) # a 2-strata solution
+summary(res)
 ```
 
 Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Triangular population. Based on the assumption from past knowledge that the population follows Triangular distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
@@ -499,8 +510,9 @@ fit <- fitdist(final_marks, distr = "triang", method="mle", lower=c(0,0),
                start = list(min = a-eps, max = b+eps, mode = 54))
 fit
 # 2-strata solution
-strata.distr(h=2, initval=7, dist=90, distr = "triangle",
+res <- strata.distr(h=2, initval=7, dist=90, distr = "triangle",
       params = c(min=6.205364, max=98.469797, mode=53.999994), n=150, N=352)
+summary(res)
 ```
 
 ## Stratification for a Survey Variable with Right-Triangular Distribution
@@ -552,7 +564,8 @@ To construct the OSB ($h = 2$) for the Right-Triangular data with a fixed total 
 set.seed(12546)
 data <- rtriangle(n=1000, a=2, b=8, c=2) #right-triangular since a=c
 hist(data)
-strata.data(data, h = 2, n=500) # a 2-strata solution
+res <- strata.data(data, h = 2, n=500) # a 2-strata solution
+summary(res)
 ```
 
 We see in the above example that the simulated data is a Right-Triangular distribution, however, when data is fitted using MLE method in the package, it turns out that it best-fits Triangular distribution because the $min$ is not exactly equal to $mode$. 
@@ -560,8 +573,9 @@ We see in the above example that the simulated data is a Right-Triangular distri
 Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Right-Triangular population. Based on the assumption from past knowledge that the population follows Right-Triangular distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
 
 ```{r include=TRUE}
-strata.distr(h=2, initval=1.007202, dist=0.992781, distr = "rtriangle",
+res <- strata.distr(h=2, initval=1.007202, dist=0.992781, distr = "rtriangle",
          params = c(min=2, max=10, mode=2), n=500, N=1000)
+summary(res)
 ```
 
 The results show that this fits a two-paramter Right-Triangular distribution. Do note that in the above command, one has to specify all three parameters $min=2, max=10$ and $mode=2$, even for a Right-Triangular distribution, where $min=mode$. 
@@ -622,14 +636,16 @@ To construct the OSB ($h = 2$) for the Iron data with a fixed total sample size 
 data(anaemia) #using the anaemia data
 Iron <- anaemia$Iron
 hist(Iron)
-strata.data(Iron, h = 2, n=500) # a 2-strata solution
+res <- strata.data(Iron, h = 2, n=500) # a 2-strata solution
+summary(res)
 ```
 
 Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Weibull population. Based on the assumption from past knowledge that the population follows Weibull distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
 
 ```{r include=TRUE}
-strata.distr(h=2, initval=2.9, dist=55.9, distr = "weibull",
+res <- strata.distr(h=2, initval=2.9, dist=55.9, distr = "weibull",
        params = c(shape=2.144586, scale=13.790744), n=500, N=5000)
+summary(res)
 ```
 
 ## Stratification for a Survey Variable with Gamma Distribution
@@ -705,14 +721,16 @@ To construct the OSB ($h = 2$) for the Folate data with a fixed total sample siz
 data(anaemia)
 Folate <- anaemia$Folate
 hist(Folate)
-strata.data(Folate, h = 2, n=500) # a 2-strata solution
+res <- strata.data(Folate, h = 2, n=500) # a 2-strata solution
+summary(res)
 ```
 
 Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Gamma population. Based on the assumption from past knowledge that the population follows Gamma distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
 
 ```{r include=TRUE}
-strata.distr(h=2, initval=0.5, dist=50, distr = "gamma",
+res <- strata.distr(h=2, initval=0.5, dist=50, distr = "gamma",
        params = c(shape=3.835768, rate=0.340328), n=500, N=12000)
+summary(res)
 ```
 
 ## Stratification for a Survey Variable with Exponential Distribution
@@ -760,7 +778,8 @@ To construct the OSB ($h = 2$) for the data that follows Exponential distributio
 set.seed(28951)
 data <- rexp(5000, rate = 1.36)
 hist(data)
-strata.data(data, h = 2, n=500) # a 2-strata solution
+res <- strata.data(data, h = 2, n=500) # a 2-strata solution
+summary(res)
 ```
 
 Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Exponential population. Based on the assumption from past knowledge that the population follows Exponential distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
@@ -771,8 +790,9 @@ data <- rexp(5000, rate = 1.36)
 min(data); max(data); d=max(data)-min(data);d
 fit <- fitdist(data, distr="exp", method="mle")
 fit
-strata.distr(h=2, initval=5.748e-05, dist=8.017, distr = "exp", 
+res <- strata.distr(h=2, initval=5.748e-05, dist=8.017, distr = "exp", 
              params = c(rate=1.36), n=500, N=5000) #a 2-strata solution
+summary(res)
 ```
 
 ## Stratification for a Survey Variable with Uniform Distribution
@@ -822,16 +842,19 @@ To construct the OSB ($h = 2$) for the Uniformly-distributed data with a fixed t
 set.seed(15669)
 data <- runif(5000, min = 2, max = 15)
 hist(data)
-strata.data(data, h = 2, n=450) # a 2-strata solution
+res <- strata.data(data, h = 2, n=450) # a 2-strata solution
+summary(res)
 ```
 
-Note that the above results indicate that the best-fit distribution is Triangular. This is because when **stratifyR** package assesses the data to ascertain the best-fit distribution, it is not able to calculate its AIC value. The distribution that gives the lowest AIC is taken to be the best-fit distribution. Since AIC for Uniform distribution is not available, the next best-fit distribution (Triangular) is be chosen. The results, you would find, are still quite accurate!
+Note that the above results indicate that the best-fit distribution is Triangular and not Uniform. This is because when **stratifyR** package assesses the data to ascertain the best-fit distribution, it is not able to calculate its AIC value for Uniform distribution. Hence, the distribution that gives the lowest AIC is taken to be the best-fit distribution. Since AIC for Uniform distribution is not available, the next best-fit distribution (Triangular) is be chosen. The results, you would find, are still quite accurate!
 
 Similarly, we can apply the **strata.distr()** function for the Uniform distribution where the arguments can be assumed from past knowledge. To construct the OSB for $h = 2$ for a hypothetical variable that follows Uniform distribution (with parameters $min=3$ and $max=15$) with a fixed total sample size of $450$ from a population of $5000$, the following command is used:
 
 ```{r include=TRUE}
-strata.distr(h=2, initval=3, dist=12, distr = "unif",
+# For a hypothetical uniform distribution, it does give a result
+res <- strata.distr(h=2, initval=3, dist=12, distr = "unif",
                  params = c(min=3, max=15), n=450, N=5000)
+summary(res)
 ```
 
 ## Stratification for a Survey Variable with Normal Distribution
@@ -891,7 +914,8 @@ To construct the OSB for $h = 2$ using the $Norm$ data with a fixed total sample
 set.seed(89821)
 data <- rnorm(5000, mean = 16, sd = 1.65)
 hist(data)
-strata.data(data, h = 2, n=500) #construct a 2-strata solution
+res <- strata.data(data, h = 2, n=500) #construct a 2-strata solution
+summary(res)
 ```
 
 Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Normal population. Based on the assumption from past knowledge that the population follows Normal distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
@@ -902,8 +926,9 @@ data <- rnorm(5000, mean = 16, sd = 1.65)
 min(data); max(data); d=max(data)-min(data);d
 fit <- fitdist(data, distr="norm", method="mle")
 fit
-strata.distr(h=2, initval=9.923816, dist=12.58885, distr = "norm",
+res <- strata.distr(h=2, initval=9.923816, dist=12.58885, distr = "norm",
              params = c(mean=16.010776, sd=1.662357), n=500, N=5000)
+summary(res)
 ```
 
 ## Stratification for a Survey Variable with Log-Normal Distribution
@@ -956,15 +981,16 @@ hist(Expenditure)
 min(Expenditure); max(Expenditure); d=max(Expenditure)-min(Expenditure);d
 fit <- fitdist(Expenditure, distr="lnorm", method="mle")
 fit
-strata.data(Expenditure, h = 2, n=500) 
-
+res <- strata.data(Expenditure, h = 2, n=500) 
+summary(res)
 ```
 
 Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Log-normal population. Based on the assumption from past knowledge that the population follows Log-normal distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
 
 ```{r include=TRUE}
-strata.distr(h=2, initval=10, dist=188, distr = "lnorm",
+res <- strata.distr(h=2, initval=10, dist=188, distr = "lnorm",
              params = c(meanlog=3.23, sdlog=0.65), n=500, N=1588)
+summary(res)
 ```
 
 ## Stratification for a Survey Variable with Cauchy Distribution
@@ -1020,7 +1046,8 @@ hist(black)
 min(black); max(black); d=max(black)-min(black);d
 fit <- fitdist(black, distr="cauchy", method="mle")
 fit
-strata.data(black, h = 2, n=500)
+res <- strata.data(black, h = 2, n=500)
+summary(res)
 ```
 
 Please note that for Cauchy distributions, one might get the error messages "simpleError in optim()...". You can ignore this error message which simply indicates that when the data is fitted to all ten distributions, it gives errors while computing the parameters of those distributions which are not defined in the negative region. This happens with Cauchy distribution because it is defined on both positive and negative regions.
@@ -1030,8 +1057,9 @@ Similarly, in order to find the OSB and other quantities, we can apply the **str
 ```{r include=TRUE}
 #for a cauchy distribution with initial value of x0=-1, d=2 and 
 #location and scale parameters 0 and 1 respectively
-strata.distr(h=2, initval=-1, dist=2, distr = "cauchy",
+res <- strata.distr(h=2, initval=-1, dist=2, distr = "cauchy",
              params = c(location=0, scale=1), n=500, N=5000)
+summary(res)
 ```
 
 # References

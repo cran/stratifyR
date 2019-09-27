@@ -26,13 +26,8 @@ from earlier opeartions through various other functions}
 \description{
 This function re-calculates or re-allocate the stratum sample sizes 
 (nh) after it has already been initially allocated via Neyman
-allocation - those where oversampling happens
-}
-\examples{
-\dontrun{
-realloc()
-}
-
+allocation. This is applied to resolve the problem of oversampling 
+in one or more of the strata.
 }
 \author{
 Karuna Reddy <reddy_k@usp.ac.fj>\cr

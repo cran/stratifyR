@@ -23,12 +23,6 @@ after OSB have been determined. It uses the boundaries to calculate the stratum
 sample allocations using Neyman allocation for all individual strata using the 
 raw data.
 }
-\examples{
-\dontrun{
-data.alloc()
-}
-
-}
 \author{
 Karuna Reddy <reddy_k@usp.ac.fj>\cr
 MGM Khan <khan_mg@usp.ac.fj>

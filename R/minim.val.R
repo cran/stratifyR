@@ -12,12 +12,6 @@
 #' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
-#'
-#' @examples
-#' \dontrun{
-#' minim.val(2,3)
-#' }
-#'
 minim.val <- function(val1, val2)
 {
   if(val1 <= val2) val1

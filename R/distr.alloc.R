@@ -16,11 +16,6 @@
 #'
 #' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 #'
-#'@examples
-#' \dontrun{
-#' distr.alloc()
-#' }
-#'
 distr.alloc <- function(my_env)
 {
   h <- my_env$h
@@ -28,9 +23,11 @@ distr.alloc <- function(my_env)
   x <- c(initval, ((my_env$df)$x)*(my_env$maxval)) #append OSB to initval
   n <- my_env$n
   N <- my_env$N
+  
+  ch <- my_env$ch #a vector of stratum sample costs
 
   distr <- my_env$obj["distr"] #extract distr
-
+  
   Wh <- double(h)
   AWh <- double(h) #adj weight
   Nh <- double(h)
@@ -100,12 +97,12 @@ distr.alloc <- function(my_env)
       Wh[i] <- WhWeibull(x[i], x[i+1]) #stratum weight
       Vh[i] <- (x2fxWeibull(x[i], x[i+1])/WhWeibull(x[i], x[i+1]))-
         ((xfxWeibull(x[i], x[i+1])/WhWeibull(x[i], x[i+1]))^2)  # Stratum Var
-      nume[i] <- Wh[i]*sqrt(Vh[i])
+      nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
       deno <- deno + nume[i]
 
       my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -150,12 +147,12 @@ distr.alloc <- function(my_env)
       Wh[i] <- WhGamma(x[i], x[i+1]) #stratum weight
       Vh[i] <- (x2fxGamma(x[i], x[i+1])/WhGamma(x[i], x[i+1]))-
         ((xfxGamma(x[i], x[i+1])/WhGamma(x[i], x[i+1]))^2)  # Stratum Var
-      nume[i] <- Wh[i]*sqrt(Vh[i])
+      nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
       deno <- deno + nume[i]
 
       my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -197,12 +194,12 @@ distr.alloc <- function(my_env)
       Wh[i] <- WhExponential(x[i], x[i+1]) #stratum weight
       Vh[i] <- (x2fxExponential(x[i], x[i+1])/WhExponential(x[i], x[i+1]))-
         ((xfxExponential(x[i], x[i+1])/WhExponential(x[i], x[i+1]))^2)  # Stratum Var
-      nume[i] <- Wh[i]*sqrt(Vh[i])
+      nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
       deno <- deno + nume[i]
 
       my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -255,12 +252,12 @@ distr.alloc <- function(my_env)
       Wh[i] <- WhNormal(x[i], x[i+1]) #stratum weight
       Vh[i] <- (x2fxNormal(x[i], x[i+1])/WhNormal(x[i], x[i+1]))-
         ((xfxNormal(x[i], x[i+1])/WhNormal(x[i], x[i+1]))^2)  # Stratum Var
-      nume[i] <- Wh[i]*sqrt(Vh[i])
+      nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
       deno <- deno + nume[i]
 
       my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -304,12 +301,12 @@ distr.alloc <- function(my_env)
       Wh[i] <- WhLognormal(x[i], x[i+1]) #stratum weight
       Vh[i] <- (x2fxLognormal(x[i], x[i+1])/WhLognormal(x[i], x[i+1]))-
         ((xfxLognormal(x[i], x[i+1])/WhLognormal(x[i], x[i+1]))^2)  #Var
-      nume[i] <- Wh[i]*sqrt(Vh[i])
+      nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
       deno <- deno + nume[i]
 
       my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -360,12 +357,12 @@ distr.alloc <- function(my_env)
       Wh[i] <- WhCauchy(x[i], x[i+1]) #stratum weight
       Vh[i] <- (x2fxCauchy(x[i], x[i+1])/Wh[i])-
         ((xfxCauchy(x[i], x[i+1])/Wh[i])^2)  #Var
-      nume[i] <- Wh[i]*sqrt(Vh[i])
+      nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
       deno <- deno + nume[i]
 
       my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -409,12 +406,12 @@ distr.alloc <- function(my_env)
       Nh[i] <- N*Wh[i]
       Vh[i] <- (x2fxUniform(x[i], x[i+1])/Wh[i])-
         ((xfxUniform(x[i], x[i+1])/Wh[i])^2)  #Var
-      nume[i] <- Wh[i]*sqrt(Vh[i])
+      nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
       deno <- deno + nume[i]
 
-      my_env$output <- data.frame("Wh" = round(Wh, digits=2),
+      my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -486,7 +483,7 @@ distr.alloc <- function(my_env)
         Wh[i] <- WhTriangle1(x[i], x[i+1]) #stratum weight
         Vh[i] <- (x2fxTriangle1(x[i], x[i+1])/Wh[i])-
           ((xfxTriangle1(x[i], x[i+1])/Wh[i])^2)  #Var
-        nume[i] <- Wh[i]*sqrt(Vh[i])
+        nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
         deno <- deno + nume[i]
       }
       else # osb > m, i.e., x[i+1] > m
@@ -499,7 +496,7 @@ distr.alloc <- function(my_env)
           Wh[i] <- WhTriangle1(x[i], m) + WhTriangle2(m, x[i+1]) #stratum weight
           Vh[i] <- ((x2fxTriangle1(x[i], m)+x2fxTriangle2(m, x[i+1]))/Wh[i])-
             (((xfxTriangle1(x[i], m)+xfxTriangle2(m, x[i+1]))/Wh[i])^2)  #Var
-          nume[i] <- Wh[i]*sqrt(Vh[i])
+          nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
           deno <- deno + nume[i]
         }
         else #if > m, use WhT2 only
@@ -510,14 +507,14 @@ distr.alloc <- function(my_env)
           Wh[i] <- WhTriangle2(x[i], x[i+1])
           Vh[i] <- (x2fxTriangle2(x[i], x[i+1])/Wh[i])-
             ((xfxTriangle2(x[i], x[i+1])/Wh[i])^2)  #Var
-          nume[i] <- Wh[i]*sqrt(Vh[i])
+          nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
           deno <- deno + nume[i]
         }
       }
 
       my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -561,12 +558,12 @@ distr.alloc <- function(my_env)
       Wh[i] <- WhRTriangle(x[i], x[i+1])
       Vh[i] <- (x2fxRTriangle(x[i], x[i+1])/Wh[i])-
         ((xfxRTriangle(x[i], x[i+1])/Wh[i])^2)  #Var
-      nume[i] <- Wh[i]*sqrt(Vh[i])
+      nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
       deno <- deno + nume[i]
 
       my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -612,12 +609,12 @@ distr.alloc <- function(my_env)
       Wh[i] <- WhPareto(x[i], x[i+1]) #stratum weight
       Vh[i] <- (x2fxPareto(x[i], x[i+1])/Wh[i])-
         ((xfxPareto(x[i], x[i+1])/Wh[i])^2)  #Var
-      nume[i] <- Wh[i]*sqrt(Vh[i])
+      nume[i] <- (Wh[i]*sqrt(Vh[i]))*sqrt(ch[i])
       deno <- deno + nume[i]
 
       my_env$output <- data.frame("Wh" = round(AWh, digits=2),
                                   "Vh" = round(Vh, digits=2),
-                                  "WhSh" = round(nume, digits=2))
+                                  "WhSh" = round(nume, digits=3))
     }
   }
   #-------------------------------------------------------------------------
@@ -644,7 +641,7 @@ distr.alloc <- function(my_env)
   my_env$out <- data.frame("nh"=round(nh), "Nh"=round(Nh), "fh"=fh) #passed to data.res()
 
   #get some totals
-  my_env$deno <- round(deno, digits=2)
+  my_env$deno <- round(deno, digits=3)
 
   # Wh for all distribs adjusted except uniform
   if(distr=="unif"){

@@ -16,11 +16,6 @@
 #' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
-#'@examples
-#'\dontrun{
-#'data.alloc()
-#'}
-#'
 data.alloc <- function(data, my_env)
 {
   h <- my_env$h
@@ -28,6 +23,8 @@ data.alloc <- function(data, my_env)
   n <- my_env$n
   x <- c(initval, ((my_env$df)$x)*(my_env$maxval)) #take osb & append to initval
 
+  ch <- my_env$ch #a vector of stratum sample costs
+  
   distr <- as.character(my_env$obj["distr"]) #best-fit distr of scaled data
 
   var <- double(h)
@@ -47,11 +44,11 @@ data.alloc <- function(data, my_env)
     Nh[i] = length(data[data >= x[i] & data <= x[i+1]])
     Wh[i] = Nh[i]/length(data)
     var[i] = try(var(data[data >= x[i] & data <= x[i+1]]), silent=TRUE)
-    nume[i] <- Wh[i]*sqrt(var[i])
+    nume[i] <- (Wh[i]*sqrt(var[i]))*sqrt(ch[i])
     deno <- deno + nume[i]
 
     my_env$output <- data.frame("Wh" = round(Wh, digits=2),
-                     "Vh" = round(var, digits=2), "WhSh" = round(nume, digits=2))
+                     "Vh" = round(var, digits=2), "WhSh" = round(nume, digits=3))
     my_env$Nh <- Nh
   }
 
@@ -77,7 +74,7 @@ data.alloc <- function(data, my_env)
   my_env$out <- data.frame("nh"=round(nh), "Nh"=Nh, "fh"=fh) #passed to data.res()
 
   #get some totals
-  my_env$deno <- round(deno, digits=2)
+  my_env$deno <- round(deno, digits=3)
   my_env$WhTot <- round(sum(Wh), digits=0)
   my_env$NhTot <- sum(Nh)
   my_env$nhTot <- round(sum(nh))

@@ -21,7 +21,7 @@ create.mat <- function(my_env)
   h <- as.character(my_env$h)
   stages <- my_env$stages
   e <- my_env$e
-
+  
   cat('The program is running, it\'ll take some time!\n')
 
   # matrix to store 6dp minimum fxn

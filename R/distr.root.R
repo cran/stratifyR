@@ -5,7 +5,8 @@
 #' progressions of stratum width and range of the data
 #'
 #' @param y A numeric: stratum width
-#' @param d A numeric: distance or range of data                                                                #
+#' @param d A numeric: distance or range of data         
+#' @param c A numeric: stratum cost                                                       #
 #' @param my_env My environment my_env contains the constants and outputs
 #' from various calculations carried out by other key functions
 #'
@@ -16,17 +17,12 @@
 #' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
-#'@examples
-#' \dontrun{
-#' distr.root()
-#' }
-#'
-distr.root <- function(d, y, my_env)
+distr.root <- function(d, y, c, my_env)
 {
   #access these scaled quantities from my_env
   initval <- my_env$initval # min val of scaled data given in strata.distr()
   maxval <- my_env$maxval #max val of the original distr giiven by user
-
+  
   distr <- my_env$obj["distr"] #extract distr given by user
 
   #if(!requireNamespace("zipfR", quietly = TRUE)) {
@@ -51,7 +47,7 @@ distr.root <- function(d, y, my_env)
     C <- t*g1r*(zipfR::Rgamma(((1/r)+1), ((d-y+initval-g)/t)^r, .Machine$double.xmin) -
                 zipfR::Rgamma(((1/r)+1), ((d+initval-g)/t)^r, .Machine$double.xmin))
 
-    calc <- A*B-(C^2)
+    calc <- (A*B-(C^2))*(c)
     }
   #-----------------------------------------------------------------------
   if(distr == "gamma") #ALREADY SET!
@@ -65,7 +61,7 @@ distr.root <- function(d, y, my_env)
     B <- zipfR::Rgamma((r+2),(d-y+initval-g)/t)-zipfR::Rgamma((r+2),(d+initval-g)/t)
     C <- t*r*(zipfR::Rgamma((r+1),(d-y+initval-g)/t)-zipfR::Rgamma((r+1),(d+initval-g)/t))
 
-    calc <- A*B-(C^2)
+    calc <- (A*B-(C^2))*(c)
   }
   #-----------------------------------------------------------------------
   if(distr == "exp")
@@ -76,7 +72,7 @@ distr.root <- function(d, y, my_env)
     B <- (1/(lambda^2))*((1-exp(-1*lambda*y))^2)
     C <- (y^2)*exp(-1*lambda*y)
 
-    calc <- (A^2)*(B-C)
+    calc <- ((A^2)*(B-C))*c
     }
   #-----------------------------------------------------------------------
   if(distr == "norm")
@@ -90,7 +86,7 @@ distr.root <- function(d, y, my_env)
       ((d+initval-mu)/sigma)*exp(-1*(((d+initval-mu)/(sigma*sqrt(2)))^2))
     C <- exp(-1*(((d-y+initval-mu)/(sigma*sqrt(2)))^2)) - exp(-1*(((d+initval-mu)/(sigma*sqrt(2)))^2))
 
-    calc <- ((sigma^2)/(2*sqrt(2*pi)))*A*B + 0.25*(sigma^2)*(A^2) - ((sigma^2)/(2*pi))*(C^2)
+    calc <- (((sigma^2)/(2*sqrt(2*pi)))*A*B + 0.25*(sigma^2)*(A^2) - ((sigma^2)/(2*pi))*(C^2))*(c)
   }
   #-----------------------------------------------------------------------
   if(distr == "lnorm")
@@ -103,7 +99,7 @@ distr.root <- function(d, y, my_env)
     B = (erf((log(d+initval-gam)-mu)/(sigma*sqrt(2))) - erf((log(d-y+initval-gam)-mu)/(sigma*sqrt(2))))
     C = (erf((log(d+initval-gam)-mu-(sigma^2))/(sigma*sqrt(2))) - erf((log(d-y+initval-gam)-mu-(sigma^2))/(sigma*sqrt(2))))
 
-    calc = 0.25*exp(2*mu+2*(sigma^2))*A*B - 0.25*exp(2*mu + (sigma^2))*(C^2)
+    calc = (0.25*exp(2*mu+2*(sigma^2))*A*B - 0.25*exp(2*mu + (sigma^2))*(C^2))*(c)
   }
   #-----------------------------------------------------------------------
   if(distr == "unif")
@@ -118,7 +114,7 @@ distr.root <- function(d, y, my_env)
     muh = (y+2*xh1)/2
     sig2h = (y^2)/12
 
-    calc = (wh^2)*(sig2h)
+    calc = ((wh^2)*(sig2h))*(c)
   }
   #-----------------------------------------------------------------------
   if(distr == "cauchy") #for standard cauchy scale=1, location=0
@@ -139,11 +135,11 @@ distr.root <- function(d, y, my_env)
                           + s*(xh1+y) - l*s*log((xh1-l)^2+s^2)
                           - (l^2-s^2)*atan((xh1-l)/s) - s*xh1) - muh^2
 
-    calc = (wh/pi)*(l*s*log((xh1+y-l)^2+s^2) + (l^2-s^2)*atan((xh1+y-l)/s) +
+    calc = ((wh/pi)*(l*s*log((xh1+y-l)^2+s^2) + (l^2-s^2)*atan((xh1+y-l)/s) +
                   s*(xh1+y) - l*s*log((xh1-l)^2+s^2) -
                   (l^2-s^2)*atan((xh1-l)/s) - s*xh1) -
                   ((1/(4*pi^2))*((s*log((xh1+y-l)^2+s^2) + 2*l*atan((xh1+y-l)/s) -
-                  s*log((xh1-l)^2+s^2) - 2*l*atan((xh1-l)/s)))^2)
+                  s*log((xh1-l)^2+s^2) - 2*l*atan((xh1-l)/s)))^2))*(c)
   }
   #-----------------------------------------------------------------------
   if(distr == "triangle") #this is when the range is b-a with mode c also given
@@ -181,12 +177,12 @@ distr.root <- function(d, y, my_env)
     #for two piece-wise functions
     if(d <= c)
     {
-     calc = (wh1^2)*sig2h1
+     calc = ((wh1^2)*sig2h1)*(c)
     }
 
     if(d > c)
     {
-     calc = (wh2^2)*sig2h2
+     calc = ((wh2^2)*sig2h2)*(c)
     }
   }
   #-----------------------------------------------------------------------
@@ -211,7 +207,7 @@ distr.root <- function(d, y, my_env)
       muh = (3*b*(y+2*xh1) - 2*(y^2+3*y*xh1) + 3*(xh1^2))/(3*(2*(b-xh1)-y))
       sig2h = ((y^2)*(y^2-6*(b-xh1)*y+6*((b-xh1)^2)))/(18*((2*(b-xh1)-y)^2))
 
-      calc = (wh^2)*(sig2h)
+      calc = ((wh^2)*(sig2h))*(c)
     }
   #-----------------------------------------------------------------------
   if(distr == "pareto") #pareto type II
@@ -232,7 +228,7 @@ distr.root <- function(d, y, my_env)
     H = (a*(y+xh1)+s)/((y+xh1+s)^a)
     I = (a*xh1+s)/((xh1+s)^a)
 
-    calc = (a*s^a)*Wh*(A-B-C-D+E+G) - ((s^(2*a))/((1-a)^2))*(H-I)^2
+    calc = ((a*s^a)*Wh*(A-B-C-D+E+G) - ((s^(2*a))/((1-a)^2))*(H-I)^2)*(c)
 
     }
   #-----------------------------------------------------------------------

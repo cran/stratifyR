@@ -1,23 +1,9 @@
-#########################################################################
-# R Function: realloc()                                                 #
-#                                                                       #
-# Purpose:                                                              #
-#                          #
-#                                                                       #
-# Input Arguments:                                                      #
-#     h, OSB as a set of vectors, nh, WhSh.                             #
-#                                                                       #
-# Output Results: re-allocates the samples in each strata, particularly #
-#                 where there is an instance of oversampling            #
-#                                                                       #
-# Author: Karuna G. Reddy                                               #
-#########################################################################
-
 #' To re-allocate the stratum sample sizes (nh)
 #'
 #' This function re-calculates or re-allocate the stratum sample sizes 
 #' (nh) after it has already been initially allocated via Neyman
-#' allocation - those where oversampling happens
+#' allocation. This is applied to resolve the problem of oversampling 
+#' in one or more of the strata.
 #'
 #' @param h A numeric: the no. of strata
 #' @param x A vector: the osb that has been calculated
@@ -31,11 +17,6 @@
 #'
 #' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
-#'
-#'@examples
-#'\dontrun{
-#'realloc()
-#'}
 #'
 realloc <- function(h, x, nh, Nh, nume, my_env){
 

@@ -24,12 +24,6 @@ the data and fits it with a list of 10 possible distributions and computes
 the parameters for all given distributions. It selects the best-fit distribution
 to be the one with the lowest AIC
 }
-\examples{
-\dontrun{
-get.dist()
-}
-
-}
 \author{
 Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 }
