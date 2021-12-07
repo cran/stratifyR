@@ -4,11 +4,19 @@
 \alias{strata.distr}
 \title{Stratification of Univariate Survey Population Using the Distribution}
 \usage{
-strata.distr(h, initval, dist, distr = c("pareto", "triangle",
-  "rtriangle", "weibull", "gamma", "exp", "unif", "norm", "lnorm",
-  "cauchy"), params = c(shape = 0, scale = 0, rate = 0, gamma = 0,
-  location = 0, mean = 0, sd = 0, meanlog = 0, sdlog = 0, min = 0, max = 0,
-  mode = 0), n, N, cost = FALSE, ch = NULL)
+strata.distr(
+  h,
+  initval,
+  dist,
+  distr = c("pareto", "triangle", "rtriangle", "weibull", "gamma", "exp", "unif",
+    "norm", "lnorm", "cauchy"),
+  params = c(shape = 0, scale = 0, rate = 0, gamma = 0, location = 0, mean = 0, sd = 0,
+    meanlog = 0, sdlog = 0, min = 0, max = 0, mode = 0),
+  n,
+  N,
+  cost = FALSE,
+  ch = NULL
+)
 }
 \arguments{
 \item{h}{A numeric: denotes the number of strata to be created.}
@@ -88,5 +96,5 @@ quakes \%>\%
 \code{strata.data}
 }
 \author{
-Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 }

@@ -9,7 +9,7 @@
 #'
 #' @return \code{} returns the minimum value
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
 minim.val <- function(val1, val2)

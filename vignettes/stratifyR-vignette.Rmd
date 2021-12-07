@@ -2,7 +2,7 @@
 title: "R Package 'stratifyR'"
 author: "K.G. Reddy & M.G.M. Khan"
 package: stratifyR
-date: September 26, 2019
+date: November 11, 2021
 output:
   rmarkdown::html_document:
     toc: true
@@ -32,15 +32,15 @@ knitr::opts_chunk$set(
 
 **Title** Optimal Stratification of Univariate Populations
 
-**Version** 1.0-2
+**Version** 1.0-3
 
-**Date** 2019-09-26
+**Date** 2021-11-23
 
 **Author** Karuna G. Reddy, M.G.M. Khan
 
-**Maintainer** Karuna G. Reddy \<reddy_k@usp.ac.fj\>
+**Maintainer** Karuna G. Reddy \<karuna.reddy@usp.ac.fj\>
 
-**Description** This implements the stratification of univariate populations under stratified sampling designs using the method of Khan et al. (2002) <\doi{10.1177/0008068320020518}>, Khan et al. (2008) <\url{http://www.statcan.gc.ca/pub/12-001-x/2008002/article/10761-eng.pdf}> and Khan et al. (2015) <\doi{10.1080/02664763.2015.1018674}>. It determines the Optimum Strata Boundaries (OSB) and Optimum Sample Sizes (OSS) for the study variable, $y$, using the best-fit frequency distribution of a survey variable (if data is available) or a hypothetical distribution (if data is not available). The method formulates the problem of determining the OSB as mathematical programming problem which is solved by using a dynamic programming technique. If a dataset of the population is available to the surveyor, the method estimates its best-fit distribution and determines the OSB and OSS under Neyman allocation directly. When the dataset is not available, stratification is made based on the assumption that the values of the study variable, $y$, are available as hypothetical realizations of proxy values of $y$ from recent surveys. Thus, it requires certain distributional assumptions about the study variable. At present, it handles stratification for the populations where the study variable follows a continuous distribution, namely, Pareto, Triangular, Right-triangular, Weibull, Gamma, Exponential, Uniform, Normal, Log-normal and Cauchy distributions. In this vignette, the two major functionalities in the package are applied to a number of real and simulated populations and to some  hypothetical populations. 
+**Description** This implements the stratification of univariate populations under stratified sampling designs using the method of Khan et al. (2002) <https://doi.org/10.1177/0008068320020518>, Khan et al. (2008) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2008002/article/10761-eng.pdf> and Khan et al. (2015) <https://doi.org/10.1080/02664763.2015.1018674>. It determines the Optimum Strata Boundaries (OSB) and Optimum Sample Sizes (OSS) for the study variable, $y$, using the best-fit frequency distribution of a survey variable (if data is available) or a hypothetical distribution (if data is not available). The method formulates the problem of determining the OSB as mathematical programming problem which is solved by using a dynamic programming technique. If a dataset of the population is available to the surveyor, the method estimates its best-fit distribution and determines the OSB and OSS under Neyman allocation directly. When the dataset is not available, stratification is made based on the assumption that the values of the study variable, $y$, are available as hypothetical realizations of proxy values of $y$ from recent surveys. Thus, it requires certain distributional assumptions about the study variable. At present, it handles stratification for the populations where the study variable follows a continuous distribution, namely, Pareto, Triangular, Right-triangular, Weibull, Gamma, Exponential, Uniform, Normal, Log-normal and Cauchy distributions. In this vignette, the two major functionalities in the package are applied to a number of real and simulated populations and to some  hypothetical populations. 
 
 **License** GPL (>= 2)
 
@@ -54,7 +54,7 @@ knitr::opts_chunk$set(
 
 **Repository** CRAN
 
-**Date/Publication** 2019-09-26 10:00:00
+**Date/Publication** 2021-11-23 10:00:00
 
 # Introduction
 \url{}

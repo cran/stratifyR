@@ -11,7 +11,7 @@ data.alloc(data, my_env)
 \item{data}{A vector: provided as an input to the function}
 
 \item{my_env}{The environment my_env has various constants and outputs stored
-from earlier opeartions through various other functions}
+from earlier operations through various other functions}
 }
 \value{
 \code{} calculates and stores quantities such as nh, Nh, Vh, etc.
@@ -24,6 +24,6 @@ sample allocations using Neyman allocation for all individual strata using the
 raw data.
 }
 \author{
-Karuna Reddy <reddy_k@usp.ac.fj>\cr
+Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 MGM Khan <khan_mg@usp.ac.fj>
 }

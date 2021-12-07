@@ -13,7 +13,7 @@
 #' and stores in the two matrices inside the my_env to be accessed by other
 #' functions
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
 create.mat <- function(my_env)

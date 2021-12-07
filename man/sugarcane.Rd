@@ -4,13 +4,15 @@
 \name{sugarcane}
 \alias{sugarcane}
 \title{Sugarcane Farming Data in Fiji}
-\format{A data frame with 13894 observations corresponding to individual farms.
+\format{
+A data frame with 13894 observations corresponding to individual farms.
 The following are the variables:
 
 \describe{
 \item{\code{DispArea}}{Disposition area (or land area under cane) (hactares)}
 \item{\code{Production}}{The amount of sugarcane produced in the farm (tonnes)}
-\item{\code{Income}}{Net income or money paid to farmers) (in FJD)}}}
+\item{\code{Income}}{Net income or money paid to farmers) (in FJD)}}
+}
 \source{
 This data was obtained from the Fiji Sugar Corporation in Fiji.
 }

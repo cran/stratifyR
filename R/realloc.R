@@ -15,7 +15,7 @@
 #'
 #' @return \code{} calculates and presents the new re-allocate stratum samples
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
 realloc <- function(h, x, nh, Nh, nume, my_env){

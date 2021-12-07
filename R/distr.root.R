@@ -5,8 +5,8 @@
 #' progressions of stratum width and range of the data
 #'
 #' @param y A numeric: stratum width
-#' @param d A numeric: distance or range of data         
-#' @param c A numeric: stratum cost                                                       #
+#' @param d A numeric: distance or range of data
+#' @param c A numeric: stratum cost
 #' @param my_env My environment my_env contains the constants and outputs
 #' from various calculations carried out by other key functions
 #'
@@ -14,7 +14,7 @@
 #'
 #' @return \code{} returns the value of the objective function
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
 distr.root <- function(d, y, c, my_env)
@@ -22,7 +22,7 @@ distr.root <- function(d, y, c, my_env)
   #access these scaled quantities from my_env
   initval <- my_env$initval # min val of scaled data given in strata.distr()
   maxval <- my_env$maxval #max val of the original distr giiven by user
-  
+
   distr <- my_env$obj["distr"] #extract distr given by user
 
   #if(!requireNamespace("zipfR", quietly = TRUE)) {

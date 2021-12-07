@@ -9,7 +9,7 @@ get.dist(data, my_env)
 \arguments{
 \item{data}{A vector: usually a column in a given data frame}
 
-\item{my_env}{My environment my_env has various constants and data that are 
+\item{my_env}{My environment my_env has various constants and data that are
 used by the get.dist() function}
 }
 \value{
@@ -25,5 +25,5 @@ the parameters for all given distributions. It selects the best-fit distribution
 to be the one with the lowest AIC
 }
 \author{
-Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 }

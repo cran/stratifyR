@@ -35,6 +35,6 @@ values in the matrices and keeps a copy in my_env so that a global minimum
 could be obtained.
 }
 \author{
-Karuna Reddy <reddy_k@usp.ac.fj>\cr M
+Karuna Reddy <karuna.reddy@usp.ac.fj>\cr M
 GM Khan <khan_mg@usp.ac.fj>
 }

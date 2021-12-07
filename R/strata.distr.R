@@ -28,7 +28,7 @@
 #' stratum weights (Wh), stratum costs (Ch), stratum variances (Vh), Optimum Sample Sizes
 #' (nh), stratum population sizes (Nh).
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 #'
 #' @seealso \code{strata.data}
 #'

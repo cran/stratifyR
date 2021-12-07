@@ -13,7 +13,7 @@
 #' 
 #' @return \code{} returns the formatted output
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 #'
 #' @examples
 #' \dontrun{

@@ -19,7 +19,7 @@
 #' @return \code{} returns the array filled with calculations of objective
 #' function values
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr M
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr M
 #' GM Khan <khan_mg@usp.ac.fj>
 #'
 data.optim <- function(k, n, incf, minYk, maxYk, isFirstRun=TRUE, my_env)

@@ -23,6 +23,6 @@ calculated by the algorithm only to be accessed later for the purpose of
 presenting the OSB.
 }
 \author{
-Karuna Reddy <reddy_k@usp.ac.fj>\cr
+Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 MGM Khan <khan_mg@usp.ac.fj>
 }

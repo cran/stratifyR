@@ -17,6 +17,6 @@ This function calculates the value of the mode of the data
 that is provided
 }
 \author{
-Karuna Reddy <reddy_k@usp.ac.fj>\cr
+Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 MGM Khan <khan_mg@usp.ac.fj>
 }

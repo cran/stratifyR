@@ -8,12 +8,12 @@
 #'
 #' @param data A vector: provided as an input to the function
 #' @param my_env The environment my_env has various constants and outputs stored
-#' from earlier opeartions through various other functions
+#' from earlier operations through various other functions
 #'
 #' @return \code{} calculates and stores quantities such as nh, Nh, Vh, etc.
 #' in the my_env to be accessed and printed as outputs
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
 data.alloc <- function(data, my_env)

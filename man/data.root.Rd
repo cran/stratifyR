@@ -25,5 +25,5 @@ package to calculate the objective function values at systematic incremental
 progressions of stratum width and range of the data
 }
 \author{
-Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 }

@@ -8,18 +8,18 @@
 #' to be the one with the lowest AIC
 #'
 #' @param data A vector: usually a column in a given data frame
-#' @param my_env My environment my_env has various constants and data that are 
+#' @param my_env My environment my_env has various constants and data that are
 #' used by the get.dist() function
 #'
 #' @import fitdistrplus
-#' @import actuar
+#' @importFrom actuar rpareto
 #' @import triangle
 #' @import mc2d
 #'
 #' @return \code{} returns a list which contains the best-fit distribution and
 #' its estimated parameters
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 #'
 get.dist <- function(data, my_env) #data is a single column data frame or numeric
 {

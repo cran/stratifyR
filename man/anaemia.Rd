@@ -4,14 +4,16 @@
 \name{anaemia}
 \alias{anaemia}
 \title{Micronutrient data on Anaemia in Fiji}
-\format{A population data frame with 724 rows on some of the key
+\format{
+A population data frame with 724 rows on some of the key
 components collected in the survey. The variables are:
 
 \describe{
   \item{\code{Haemoglobin}}{Level of Haemoglobin (mmol/L)}
   \item{\code{Iron}}{Level of Iron (ng/mL)}
   \item{\code{Folate}}{Level of Folate (mmol/L)}
-}}
+}
+}
 \source{
 This survey was conducted by the Ministry of Heath in Fiji. More details can be found at: \url{http://ghdx.healthdata.org/record/fiji-national-nutrition-survey-2004}
 }

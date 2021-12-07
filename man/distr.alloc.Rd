@@ -9,7 +9,7 @@ distr.alloc(my_env)
 }
 \arguments{
 \item{my_env}{The environment my_env which has various constants and outputs stored
-from earlier opeartions through various other functions}
+from earlier operations through various other functions}
 }
 \value{
 \code{} calculates and stores quantities such as nh, Nh, Vh, etc.
@@ -22,5 +22,5 @@ sample allocations using Neyman allocation for all individual strata using the
 underlying distribution of the population.
 }
 \author{
-Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 }

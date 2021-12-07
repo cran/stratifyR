@@ -4,7 +4,8 @@
 \name{math}
 \alias{math}
 \title{Mathematics Marks for First-year University Students}
-\format{A data frame with 353 observations which represent
+\format{
+A data frame with 353 observations which represent
 mathematics marks and grades for first year math students at
 university level. The variable is as follows:
 
@@ -14,7 +15,8 @@ university level. The variable is as follows:
 maths (0-50)}
 \item{\code{final_marks}}{Final examination marks in
 maths, which is an addition of the cw and end_exam (0-100)}
-\item{\code{grade}}{The grade obtained by the student based on the final marks}}}
+\item{\code{grade}}{The grade obtained by the student based on the final marks}}
+}
 \source{
 The data was obtained by a masters students at USP, Fiji.
 }

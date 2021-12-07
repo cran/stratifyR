@@ -1,10 +1,10 @@
-## ----setup, include = FALSE----------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 data(quakes)
 head(quakes)
 mag <- quakes$mag
@@ -14,7 +14,7 @@ library(stratifyR)
 res <- strata.data(mag, h = 2, n=300) # a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 data(quakes) 
 depth <- quakes$depth
 hist(depth) #see distribution
@@ -24,7 +24,7 @@ res <- strata.distr(h=2, initval=40, dist=640, distr = "triangle",
              params = c(min=39.99998, max=680, mode=39.99999), n=300, N=1000)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 set.seed(8235411)
 pareto_data <- rpareto(5000, shape=5, scale=8)
 head(pareto_data)
@@ -35,19 +35,19 @@ fit
 res <- strata.data(pareto_data, h = 2, n=500) # a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 res <- strata.distr(h=2, initval=0.15, dist=38.55, distr = "pareto",
              params = c(shape=5.05, scale=8.20), n=500, N=5000)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 data(math)
 final_marks <- math$final_marks
 hist(final_marks)
 res <- strata.data(final_marks, h = 2, n=150) # a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 data(math)
 final_marks <- math$final_marks
 eps = 1e-8; a <- min(final_marks); b <- max(final_marks); c=b-a# and with mode=54
@@ -61,7 +61,7 @@ res <- strata.distr(h=2, initval=7, dist=90, distr = "triangle",
       params = c(min=6.205364, max=98.469797, mode=53.999994), n=150, N=352)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 #Generate RT data
 set.seed(12546)
 data <- rtriangle(n=1000, a=2, b=8, c=2) #right-triangular since a=c
@@ -69,43 +69,43 @@ hist(data)
 res <- strata.data(data, h = 2, n=500) # a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 res <- strata.distr(h=2, initval=1.007202, dist=0.992781, distr = "rtriangle",
          params = c(min=2, max=10, mode=2), n=500, N=1000)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 data(anaemia) #using the anaemia data
 Iron <- anaemia$Iron
 hist(Iron)
 res <- strata.data(Iron, h = 2, n=500) # a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 res <- strata.distr(h=2, initval=2.9, dist=55.9, distr = "weibull",
        params = c(shape=2.144586, scale=13.790744), n=500, N=5000)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 data(anaemia)
 Folate <- anaemia$Folate
 hist(Folate)
 res <- strata.data(Folate, h = 2, n=500) # a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 res <- strata.distr(h=2, initval=0.5, dist=50, distr = "gamma",
        params = c(shape=3.835768, rate=0.340328), n=500, N=12000)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 set.seed(28951)
 data <- rexp(5000, rate = 1.36)
 hist(data)
 res <- strata.data(data, h = 2, n=500) # a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 set.seed(28951)
 data <- rexp(5000, rate = 1.36)
 min(data); max(data); d=max(data)-min(data);d
@@ -115,27 +115,27 @@ res <- strata.distr(h=2, initval=5.748e-05, dist=8.017, distr = "exp",
              params = c(rate=1.36), n=500, N=5000) #a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 set.seed(15669)
 data <- runif(5000, min = 2, max = 15)
 hist(data)
 res <- strata.data(data, h = 2, n=450) # a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 # For a hypothetical uniform distribution, it does give a result
 res <- strata.distr(h=2, initval=3, dist=12, distr = "unif",
                  params = c(min=3, max=15), n=450, N=5000)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 set.seed(89821)
 data <- rnorm(5000, mean = 16, sd = 1.65)
 hist(data)
 res <- strata.data(data, h = 2, n=500) #construct a 2-strata solution
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 set.seed(89821)
 data <- rnorm(5000, mean = 16, sd = 1.65)
 min(data); max(data); d=max(data)-min(data);d
@@ -145,7 +145,7 @@ res <- strata.distr(h=2, initval=9.923816, dist=12.58885, distr = "norm",
              params = c(mean=16.010776, sd=1.662357), n=500, N=5000)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 data(hies)
 Expenditure <- hies$Expenditure
 head(Expenditure);length(Expenditure)
@@ -156,12 +156,12 @@ fit
 res <- strata.data(Expenditure, h = 2, n=500) 
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 res <- strata.distr(h=2, initval=10, dist=188, distr = "lnorm",
              params = c(meanlog=3.23, sdlog=0.65), n=500, N=1588)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 data(Boston) #Housing Values in Suburbs of Boston
 black = Boston$black
 hist(black)
@@ -171,7 +171,7 @@ fit
 res <- strata.data(black, h = 2, n=500)
 summary(res)
 
-## ----include=TRUE--------------------------------------------------------
+## ----include=TRUE-------------------------------------------------------------
 #for a cauchy distribution with initial value of x0=-1, d=2 and 
 #location and scale parameters 0 and 1 respectively
 res <- strata.distr(h=2, initval=-1, dist=2, distr = "cauchy",

@@ -19,7 +19,7 @@
 #' @return \code{} returns the array filled with calculations of objective
 #' function values
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 #'
 distr.optim <- function(k, n, incf, minYk, maxYk, isFirstRun=TRUE, my_env)
 {

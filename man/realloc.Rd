@@ -30,6 +30,6 @@ allocation. This is applied to resolve the problem of oversampling
 in one or more of the strata.
 }
 \author{
-Karuna Reddy <reddy_k@usp.ac.fj>\cr
+Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 MGM Khan <khan_mg@usp.ac.fj>
 }

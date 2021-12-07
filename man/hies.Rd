@@ -4,14 +4,16 @@
 \name{hies}
 \alias{hies}
 \title{Household Income Expenditure Survey (HIES) in Fiji}
-\format{A data frame with 3566 observations on two of
+\format{
+A data frame with 3566 observations on two of
 the major quantities collected in the survey. The
 variables are:
 
 \describe{
   \item{\code{Expenditure}}{Level of expenditure (FJD)}
   \item{\code{Income}}{Level of income (FJD)}
-}}
+}
+}
 \source{
 This survey was conducted in 2010 by the Bureau of Statistics (FIBoS) - Fiji Government.
 }

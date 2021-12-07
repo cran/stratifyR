@@ -8,7 +8,7 @@
 #'
 #' @return \code{} Gives the error for a normal variable
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
 #the 'error function'

@@ -7,7 +7,7 @@
 #'
 #' @return \code{} Gives the mode
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
 #' MGM Khan <khan_mg@usp.ac.fj>
 #'
 mode.val <- function(x) {

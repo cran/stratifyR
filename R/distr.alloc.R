@@ -7,14 +7,14 @@
 #' underlying distribution of the population.
 #'
 #' @param my_env The environment my_env which has various constants and outputs stored
-#' from earlier opeartions through various other functions
+#' from earlier operations through various other functions
 #'
 #' @import stats
 #'
 #' @return \code{} calculates and stores quantities such as nh, Nh, Vh, etc.
 #' in the my_env to be accessed and printed as outputs
 #'
-#' @author Karuna Reddy <reddy_k@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 #'
 distr.alloc <- function(my_env)
 {
@@ -23,11 +23,11 @@ distr.alloc <- function(my_env)
   x <- c(initval, ((my_env$df)$x)*(my_env$maxval)) #append OSB to initval
   n <- my_env$n
   N <- my_env$N
-  
+
   ch <- my_env$ch #a vector of stratum sample costs
 
   distr <- my_env$obj["distr"] #extract distr
-  
+
   Wh <- double(h)
   AWh <- double(h) #adj weight
   Nh <- double(h)
