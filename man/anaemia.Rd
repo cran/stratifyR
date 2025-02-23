@@ -15,7 +15,7 @@ components collected in the survey. The variables are:
 }
 }
 \source{
-This survey was conducted by the Ministry of Heath in Fiji. More details can be found at: \url{http://ghdx.healthdata.org/record/fiji-national-nutrition-survey-2004}
+This survey was conducted by the Ministry of Heath in Fiji. More details can be found at: \url{https://ghdx.healthdata.org/record/fiji-national-nutrition-survey-2004}
 }
 \usage{
 data(anaemia)

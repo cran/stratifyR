@@ -2,7 +2,7 @@
 title: "R Package 'stratifyR'"
 author: "K.G. Reddy & M.G.M. Khan"
 package: stratifyR
-date: November 11, 2021
+date: February 20, 2025
 output:
   rmarkdown::html_document:
     toc: true
@@ -32,9 +32,9 @@ knitr::opts_chunk$set(
 
 **Title** Optimal Stratification of Univariate Populations
 
-**Version** 1.0-3
+**Version** 1.0-4
 
-**Date** 2021-11-23
+**Date** 2025-02-20
 
 **Author** Karuna G. Reddy, M.G.M. Khan
 
@@ -54,7 +54,7 @@ knitr::opts_chunk$set(
 
 **Repository** CRAN
 
-**Date/Publication** 2021-11-23 10:00:00
+**Date/Publication** 2025-02-20 10:00:00
 
 # Introduction
 \url{}
@@ -66,8 +66,6 @@ As implemented in this package, there are many advantages of using the method. T
 
 Other advantages of the method are that it leads to substantial gains in the precision of the estimates over other available methods. Results reveal that the variances get smaller with increasing number of strata $(L)$, and they get much smaller at a much faster rate than other available methods. Once the OSB have been determined, the Optimum Sample Sizes (OSS) can be easily calculated for each stratum using Neyman allocation (@Neyman1934). The algorithm may be a little slow, however, it does provide very efficient results which is probably the most important objective of our survey estimation efforts.
 
-
- 
 # The Package in a Glance 
 
 The **stratifyR** package implements the DP technique (from various literature by Khan et al) as a stratification procedure for univariate populations, when the stratification variable follows a continuous probability distribution, namely: uniform, triangular, right-triangular, pareto, exponential, normal, log-normal, cauchy, weibull and gamma. The package is able to determine the OSB and OSS from real data and as well as hypothetical situations when the dataset is not available. The latter requires some assumptions about the distribution and its initial value, range, parameter values, fixed sample size, etc.
@@ -298,12 +296,10 @@ in the constructor function strata.data(). The function extracts all individual 
 To show the application of the **strata.data()** function, an example of the command used and its output from the package is given below. The problem uses the 'mag' variable from the 'quakes' data (with a population of $N=1000$) available from the **datasets** package in R. To construct a 2-strata solution with a fixed sample size of $n=300$, we use the following codes:
 
 ```{r include=TRUE}
-data(quakes)
-head(quakes)
-mag <- quakes$mag
-length(mag)
-hist(mag) #to see the distribution
 library(stratifyR)
+data(quakes)
+mag <- quakes$mag
+hist(mag) #to see the distribution
 res <- strata.data(mag, h = 2, n=300) # a 2-strata solution
 summary(res)
 ```
@@ -428,6 +424,11 @@ A dataset for a univariate population of size $N=5000$ with the study variable t
 To construct the OSB (a 2-strata solution, i.e., $h = 2$) for the $pareto\_data$ with a fixed total sample size of $500$, we use the following codes:
 
 ```{r include=TRUE}
+library(fitdistrplus)
+library(actuar)
+library(triangle)
+library(mc2d)
+library(zipfR)
 set.seed(8235411)
 pareto_data <- rpareto(5000, shape=5, scale=8)
 head(pareto_data)
@@ -628,23 +629,22 @@ The recurrence relations (26) and (27) are solved using the DP technique to dete
 
 ### A Numerical Example for Weibull Distribution
 
-A health data of size $N=724$, called 'anaemia' data (@Reddy2014), is used to demonstrate the application of the **stratifyR** package on Weibull population. The 'anaemia' data comes from the National Nutritional Survey on the ``Micronutrient Status of Women in Fiji" and has many variables such as level of Iron, Folate, Zinc, etc. In this example, the variable Iron is used since it exhibits a 2-parameter Weibull distribution with the shape and scale parameters as $r = 2.144586$ and $\theta = 13.790744$ respectively. The minimum and maximum values are $[y_{0}, y_{L}] = [1.5, 34.7]$, which implies that $d=33.2$. 
+A data on volcanic eruptions of size $N=272$, called 'faithful' data, is used to demonstrate the application of the **stratifyR** package on Uniform population. The 'faithful' data has the waiting time between eruptions and the duration of the eruption for the Old Faithful geyser in Yellowstone National Park, Wyoming, USA. In this example, the variable eruptions is used since it exhibits a 2-parameter Uniform distribution with the shape and scale parameters as $min = 1.6$ and $max = 5.1$ respectively. The minimum and maximum values are $[y_{0}, y_{L}] = [1.6, 5.1]$, which implies that $d=3.5$. 
 
-To construct the OSB ($h = 2$) for the Iron data with a fixed total sample size of $500$, we use the following codes:
+To construct the OSB ($h = 2$) for the eruptions data with a fixed total sample size of say a total sample of $20$ volcanic eruptions, we use the following codes:
 
 ```{r include=TRUE}
-data(anaemia) #using the anaemia data
-Iron <- anaemia$Iron
-hist(Iron)
-res <- strata.data(Iron, h = 2, n=500) # a 2-strata solution
+data(faithful) #available data in R
+eruptions = faithful$eruptions
+res <- strata.data(eruptions, h = 2, n=20) # a 2-strata solution
 summary(res)
 ```
 
-Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Weibull population. Based on the assumption from past knowledge that the population follows Weibull distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
+Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Uniform population. Based on the assumption from past knowledge that this population follows Uniform distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
 
 ```{r include=TRUE}
-res <- strata.distr(h=2, initval=2.9, dist=55.9, distr = "weibull",
-       params = c(shape=2.144586, scale=13.790744), n=500, N=5000)
+res <- strata.distr(h=2, initval=1.6, dist=3.5, distr = "unif",
+       params = c(min=1.6, max=5.1), n=20, N=272)
 summary(res)
 ```
 
@@ -713,25 +713,18 @@ The recurrence relations (34) and (35) are solved using the DP technique to dete
 
 ### A Numerical Example for Gamma Distribution
 
-Again, the health data of size $N=724$, derived from the 'National Nutritional Survey' on the 'Micronutrient Status of Women in Fiji' is used to demonstrate the application of the **stratifyR** package on Gamma population. In this example, the variable Folate is used since it exhibits a 2-parameter Gamma distribution with the shape and scale parameters as $r = 6.9922$ and $\theta = 2.5785$ respectively. The minimum and maximum values are $[y_{0}, y_{L}] = [4.9, 45.4]$, which implies that $d=40.5$. 
+Teh quakes data of size $N=1000$, give the locations of 1000 seismic events of MB > 4.0. The events occurred in a cube near Fiji since 1964. In this example, the variable magnitude is used since it exhibits the Triangle distribution with the min, max and mode parameters as $min = 4.319263$, $max = 4.6$ and respectively $mode = 4.6$. The minimum and maximum values are $[y_{0}, y_{L}] = [4, 6.4]$, which implies that $d=2.4$. 
 
-To construct the OSB ($h = 2$) for the Folate data with a fixed total sample size of $500$, we use the following codes:
+To construct the OSB ($h = 2$) for the Folate data with a fixed total sample size of $200$ quakes, we use the following codes:
 
 ```{r include=TRUE}
-data(anaemia)
-Folate <- anaemia$Folate
-hist(Folate)
-res <- strata.data(Folate, h = 2, n=500) # a 2-strata solution
+data(quakes)
+mag <- quakes$mag
+res <- strata.data(mag, h = 2, n=200) # a 2-strata solution
 summary(res)
 ```
 
-Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Gamma population. Based on the assumption from past knowledge that the population follows Gamma distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
-
-```{r include=TRUE}
-res <- strata.distr(h=2, initval=0.5, dist=50, distr = "gamma",
-       params = c(shape=3.835768, rate=0.340328), n=500, N=12000)
-summary(res)
-```
+Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Triangular population. Based on the assumption from past knowledge that the population follows Triangular distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the required commands to obtain similar:
 
 ## Stratification for a Survey Variable with Exponential Distribution
 
@@ -911,10 +904,9 @@ A data following Normal distribution (herein called $Norm$ data), of size $N=500
 To construct the OSB for $h = 2$ using the $Norm$ data with a fixed total sample size of $580$, the command below can be used:
 
 ```{r include=TRUE}
-set.seed(89821)
-data <- rnorm(5000, mean = 16, sd = 1.65)
-hist(data)
-res <- strata.data(data, h = 2, n=500) #construct a 2-strata solution
+data(anaemia)
+Haemoglobin = anaemia$Haemoglobin - 6.2 #shift to left => normal
+res <- strata.data(Haemoglobin, h = 2, n=200) # a 2-strata solution
 summary(res)
 ```
 

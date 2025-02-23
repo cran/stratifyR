@@ -19,10 +19,14 @@ which the OSB are determined}
 \item{cost}{A logical: has default cost=FALSE. If it is a stratum-cost problem,
 cost=TRUE, with which, one must provide the Ch parameter.}
 
-\item{ch}{A numeric: denotes a vector of stratum costs. When cost=FALSE, it 
+\item{ch}{A numeric: denotes a vector of stratum costs. When cost=FALSE, it
 has a default of NULL.}
 }
 \value{
+\code{strata.data} returns Optimum Strata Boundaries (OSB),
+stratum weights (Wh), stratum variances (Vh), Optimum Sample Sizes
+(nh), stratum population sizes (Nh) and sampling fraction (fh).
+
 \code{strata.data} returns Optimum Strata Boundaries (OSB),
 stratum weights (Wh), stratum variances (Vh), Optimum Sample Sizes
 (nh), stratum population sizes (Nh) and sampling fraction (fh).
@@ -61,15 +65,15 @@ hist(data)
 obj <- strata.data(data, h = 2, n=300)
 summary(obj)
 #-------------------------------------------------------------
-data(anaemia)
-Iron <- anaemia$Iron
-res <- strata.data(Iron, h = 2, n=350)
+data(quakes)
+mag <- quakes$mag
+hist(mag) #to see the distribution
+res <- strata.data(mag, h = 2, n=300) # a 2-strata solution
 summary(res)
 #-------------------------------------------------------------
-data(SHS) #Household Spending data from stratification package
-weight <- SHS$WEIGHT
-hist(weight); length(weight)
-res <- strata.data(weight, h = 2, n=500)
+data(faithful) #available data in R
+eruptions = faithful$eruptions
+res <- strata.data(eruptions, h = 2, n=20) # a 2-strata solution
 summary(res)
 #-------------------------------------------------------------
 data(sugarcane)
@@ -78,13 +82,13 @@ hist(Production)
 res <- strata.data(Production, h = 2, n=1000)
 summary(res)
 #-------------------------------------------------------------
-#The function be dynamically used to visualize the the strata boundaries, 
-#for 2 strata, over the density (or observations) of the "mag" variable 
+#The function be dynamically used to visualize the the strata boundaries,
+#for 2 strata, over the density (or observations) of the "mag" variable
 #from the quakes data (with purrr and ggplot2 packages loaded).
 output <- quakes \%>\%
           pluck("mag") \%>\%
           strata.data(h = 2, n = 300)
-quakes \%>\% 
+quakes \%>\%
       ggplot(aes(x = mag)) +
       geom_density(fill = "blue", colour = "black", alpha = 0.3) +
       geom_vline(xintercept = output$OSB, linetype = "dotted", color = "red")
@@ -114,13 +118,13 @@ hist(Production)
 res <- strata.data(Production, h = 2, n=1000)
 summary(res)
 #-------------------------------------------------------------
-#The function be dynamically used to visualize the the strata boundaries, 
-#for 2 strata, over the density (or observations) of the "mag" variable 
+#The function be dynamically used to visualize the the strata boundaries,
+#for 2 strata, over the density (or observations) of the "mag" variable
 #from the quakes data (with purrr and ggplot2 packages loaded).
 output <- quakes \%>\%
           pluck("mag") \%>\%
           strata.data(h = 2, n = 300)
-quakes \%>\% 
+quakes \%>\%
       ggplot(aes(x = mag)) +
       geom_density(fill = "blue", colour = "black", alpha = 0.3) +
       geom_vline(xintercept = output$OSB, linetype = "dotted", color = "red")
@@ -134,7 +138,5 @@ quakes \%>\%
 \code{strata.distr}
 }
 \author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
-
 Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
 }
