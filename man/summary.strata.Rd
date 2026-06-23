@@ -2,34 +2,28 @@
 % Please edit documentation in R/summary.strata.R
 \name{summary.strata}
 \alias{summary.strata}
-\title{This method formats and outputs the final results to the R console}
+\title{Format and Present Results}
 \usage{
 \method{summary}{strata}(object, ...)
 }
 \arguments{
-\item{object}{A list: An object of class "strata".}
+\item{object}{A strata object.}
 
-\item{...}{Any data type: This argument can be any particular argument.}
-}
-\value{
-\code{} returns the formatted output
+\item{...}{Additional arguments.
+
+Nicely formatted (and colored) summary for "strata" objects
+Console: aligned ASCII table with crayon colors (if supported).
+HTML: kable + kableExtra with yellow TOTAL row (text only, no background).}
 }
 \description{
-This function defines the method for the "strata" class that has been created 
-in the constructor function (strata.data() or strata.distr()) where all computed 
-objects, via other relevant functions, are collated and passed as a list. The 
-function extracts all individual objects from the "strata" class object and combines 
-them into dataframes before writing the formatted outputs to the console. This 
-is used for both cases, depending on either the data or a hypothetical distribution.
+Nicely formatted (and colored) summary for \code{"strata"} objects.
+Prints an aligned ASCII table with optional crayon colors to the console,
+or returns a \pkg{knitr} kable table in knitted documents.
 }
-\examples{
-\dontrun{
-data <- rweibull(1000, shape=2, scale = 1.5)
-res <- strata.data(data, h = 2, n=300)
-summary(res)
-}
-
-}
-\author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+\value{
+Invisibly returns a data frame containing the per-stratum results and
+totals (columns: \code{Strata}, \code{OSB}, \code{Wh}, \code{Vh},
+\code{WhSh}, \code{nh}, \code{Nh}, \code{fh}), with a \code{"Total"} row
+appended.  In a \pkg{knitr} HTML context a \code{kableExtra} table object
+is returned instead.
 }

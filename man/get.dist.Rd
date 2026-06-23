@@ -2,28 +2,32 @@
 % Please edit documentation in R/get.dist.R
 \name{get.dist}
 \alias{get.dist}
-\title{To identify the best-fit distribution of a univariate data}
+\title{Determine best-fit distribution
+Identify the best-fit distribution for a univariate numeric vector}
 \usage{
 get.dist(data, my_env)
 }
 \arguments{
-\item{data}{A vector: usually a column in a given data frame}
+\item{data}{Input dataset.}
 
-\item{my_env}{My environment my_env has various constants and data that are
-used by the get.dist() function}
+\item{my_env}{Environment object.}
 }
 \value{
-\code{} returns a list which contains the best-fit distribution and
-its estimated parameters
+...
+
+Fits several candidate distributions via MLE and selects the model with the
+lowest (finite) AIC. For strictly positive data, tail-sensitive families are
+also tried. If a triangular fit narrowly wins (Delta AIC <= 10 over a tail model,
+prefer the tail model (helps avoid spurious triangular wins on mildly skewed data).
+
+Returns a list with:
+ - distr:   best model name (e.g., "gamma", "weibull", "triangle", ...)
+ - params:  named parameter vector for the best model
+ - aic:     named numeric vector of AICs for all attempted models (NA if failed)
+ - fits_ok: named logical vector (TRUE where fit succeeded)
+ - messages:named list of diagnostic messages per model (errors/warnings)
 }
 \description{
-This function is called at the start of the stratification process where the
-best-fit distribution and it parameters are estimated and returned for further
-processing towards the computation of stratum boundaries. It basically takes in
-the data and fits it with a list of 10 possible distributions and computes
-the parameters for all given distributions. It selects the best-fit distribution
-to be the one with the lowest AIC
-}
-\author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+Determine best-fit distribution
+Identify the best-fit distribution for a univariate numeric vector
 }

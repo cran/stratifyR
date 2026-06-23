@@ -18,6 +18,6 @@ normally distributed variable using the idea presented in
 Abramowitz and Stegun (2011)
 }
 \author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
+Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr
 MGM Khan <khan_mg@usp.ac.fj>
 }

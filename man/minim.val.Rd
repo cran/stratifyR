@@ -20,6 +20,6 @@ which basically compares and returns the smaller value out
 of two given sets of values.
 }
 \author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
+Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr
 MGM Khan <khan_mg@usp.ac.fj>
 }

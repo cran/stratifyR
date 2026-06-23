@@ -14,8 +14,8 @@
 #'   \item{\code{Folate}}{Level of Folate (mmol/L)}
 #' }
 #'
-#' @source This survey was conducted by the Ministry of Heath in Fiji. More details can be found at: \url{https://ghdx.healthdata.org/record/fiji-national-nutrition-survey-2004}
-
+#' @source This survey was conducted by the Ministry of Heath in Fiji. 
+#' More details can be found at: \url{https://ghdx.healthdata.org/record/fiji-national-nutrition-survey-2004}
 #'
 #' @examples data(anaemia)
 #' head(anaemia)

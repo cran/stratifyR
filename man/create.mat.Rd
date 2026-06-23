@@ -17,12 +17,12 @@ functions
 }
 \description{
 This function creates a matrix whose rows and columns depend on the
-range or distance of the data and the number of strata solutions that the 
+range or distance of the data and the number of strata solutions that the
 user is seeking to compute. The matrix stores the objective function values
 calculated by the algorithm only to be accessed later for the purpose of
 presenting the OSB.
 }
 \author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
+Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr
 MGM Khan <khan_mg@usp.ac.fj>
 }

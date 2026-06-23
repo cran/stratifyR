@@ -2,28 +2,25 @@
 % Please edit documentation in R/data.alloc.R
 \name{data.alloc}
 \alias{data.alloc}
-\title{To calculate the stratum sample sizes (nh) for a fixed sample size (n) 
+\title{Allocate data
+To calculate the stratum sample sizes (nh) for a fixed sample size (n) 
 directly based on the data}
 \usage{
 data.alloc(data, my_env)
 }
 \arguments{
-\item{data}{A vector: provided as an input to the function}
+\item{data}{Input dataset.}
 
-\item{my_env}{The environment my_env has various constants and outputs stored
-from earlier operations through various other functions}
+\item{my_env}{Environment object.}
 }
 \value{
-\code{} calculates and stores quantities such as nh, Nh, Vh, etc.
-in the my_env to be accessed and printed as outputs
+...
+
+Uses OSB to compute stratum weights (Wh), sample variances (Vh from data),
+and Neyman allocations (nh). Builds the summary table once at the end.
 }
 \description{
-This function is called towards the final stages of the stratification process
-after OSB have been determined. It uses the boundaries to calculate the stratum 
-sample allocations using Neyman allocation for all individual strata using the 
-raw data.
-}
-\author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
-MGM Khan <khan_mg@usp.ac.fj>
+Allocate data
+To calculate the stratum sample sizes (nh) for a fixed sample size (n) 
+directly based on the data
 }

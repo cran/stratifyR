@@ -19,72 +19,102 @@
 #' @return \code{} returns the array filled with calculations of objective
 #' function values
 #'
-#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+#' @author Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr MGM Khan <khan_mg@usp.ac.fj>
 #'
-distr.optim <- function(k, n, incf, minYk, maxYk, isFirstRun=TRUE, my_env)
+# distr.optim.R  (rewritten: safe bounds, window clamp, guarded indexing)
+distr.optim <- function(k, n, incf, minYk, maxYk, isFirstRun = TRUE, my_env)
 {
-   if(length(k) > 1 || !is.numeric(k) || !is.finite(k) || k < 1)
+   # --- sanity checks for k ---
+   if (length(k) > 1L || !is.numeric(k) || !is.finite(k) || k < 1L)
       stop("choice of 'k' is not valid")
-
-   d <- n*incf
    
-   ch <- my_env$ch #get stratum costs 
-
+   # --- grid step -> real remaining distance for this DP cell ---
+   d <- n * incf
+   
+   # --- costs vector (per stratum) ---
+   ch <- my_env$ch
+   
+   # --- argmin placeholders (value and y at min) ---
+   dblRetVal <- Inf
    miny <- 0
-   val <- 0
-
-   if(k == 1)
-   {
+   
+   # --- base case: last stratum (k == 1) ---
+   #     must consume entire remaining distance d as width y
+   if (k == 1L) {
       y <- d
-      c <- ch[k]
-      dblRetVal <- distr.root(d, y, c, my_env)
-   }
-   else
-   {
-      for(i in minYk:(maxYk-1))
-      {
-         y <- i*incf
-         c <- ch[k]
-         root <- distr.root(d, y, c, my_env)
-         if(root != -1)
-         {
-            col <- as.integer(n-i)
-            if(my_env$minkf2[k, col+1] == -9999)
-            {
-               if(isFirstRun)
-               {
-                  val <- root + distr.optim((k-1), col, incf, 0, col, TRUE, my_env)
-               }
-               else
-               {
-                  val <- root + distr.optim((k-1), col, incf,
-                         my_env$ylimits[k]-my_env$factor*my_env$z,
-                         my_env$ylimits[k]+my_env$factor*my_env$z, FALSE, my_env)
-               }
+      cval <- ch[k]
+      root <- distr.root(d = d, y = y, c = cval, my_env = my_env)
+      
+      # keep your invalid-root contract (-1 means unusable)
+      dblRetVal <- if (root != -1) root else Inf
+      miny <- if (is.finite(dblRetVal)) y else 0
+      
+   } else {
+      # --- clamp i (index for y = i * incf) to safe window ---
+      # valid grid i is [0, n-1]; caller may pass negatives/wide windows
+      i_min <- max(0L, as.integer(minYk))
+      i_max <- min(as.integer(maxYk) - 1L, as.integer(n) - 1L)
+      
+      # no feasible i in this window -> mark as impossible and return
+      if (i_min > i_max) {
+         my_env$minkf2[k + 1L, n + 1L] <- Inf
+         my_env$dk2[  k + 1L, n + 1L] <- NA_real_
+         return(Inf)
+      }
+      
+      # --- sweep candidate first-stratum widths y over [i_min, i_max] ---
+      for (i in i_min:i_max) {
+         y <- i * incf
+         cval <- ch[k]
+         
+         # objective for the first stratum of width y
+         root <- distr.root(d = d, y = y, c = cval, my_env = my_env)
+         if (root == -1) next  # skip invalid branch early
+         
+         # remaining distance index (in columns) after taking i steps
+         col <- as.integer(n - i)
+         
+         # guard against residual off-by-one / negative
+         if (col < 0L || col > n) next
+         
+         # --- DP memoization: compute subproblem if needed, else reuse cache ---
+         add <- my_env$minkf2[k, col + 1L]
+         if (identical(add, -9999)) {
+            if (isTRUE(isFirstRun)) {
+               add <- distr.optim(k = k - 1L,
+                                  n = col,
+                                  incf = incf,
+                                  minYk = 0L,
+                                  maxYk = col,
+                                  isFirstRun = TRUE,
+                                  my_env = my_env)
+            } else {
+               add <- distr.optim(k = k - 1L,
+                                  n = col,
+                                  incf = incf,
+                                  minYk = my_env$ylimits[k] - my_env$factor * my_env$z,
+                                  maxYk = my_env$ylimits[k] + my_env$factor * my_env$z,
+                                  isFirstRun = FALSE,
+                                  my_env = my_env)
             }
-            else
-            {
-               val <- root + my_env$minkf2[k, col+1]
-            }
          }
-         if (i == minYk)
-         {
-            min <- val
-         }
-         else
-         {
-            min <- minim.val(min, val)
-         }
-         if(min == val)
-         {
+         
+         # combine current stratum cost with best remainder
+         val <- root + add
+         
+         # argmin update
+         if (val < dblRetVal) {
+            dblRetVal <- val
             miny <- y
          }
       }
-      dblRetVal <- min
    }
-   col <- n
-   my_env$minkf2[k+1, col+1] <- dblRetVal
-   my_env$dk2[k+1, col+1] <- miny
+   
+   # --- write DP cell (store value and argmin y) ---
+   # DP tables are 1-based: rows = k+1, cols = n+1
+   my_env$minkf2[k + 1L, n + 1L] <- dblRetVal
+   my_env$dk2[  k + 1L, n + 1L] <- miny
+   
    return(dblRetVal)
 }
 ##################################################################################

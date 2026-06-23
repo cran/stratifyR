@@ -5,10 +5,12 @@ knitr::opts_chunk$set(
 )
 
 ## ----include=TRUE-------------------------------------------------------------
-library(stratifyR)
 data(quakes)
+head(quakes)
 mag <- quakes$mag
+length(mag)
 hist(mag) #to see the distribution
+library(stratifyR)
 res <- strata.data(mag, h = 2, n=300) # a 2-strata solution
 summary(res)
 
@@ -23,17 +25,17 @@ res <- strata.distr(h=2, initval=40, dist=640, distr = "triangle",
 summary(res)
 
 ## ----include=TRUE-------------------------------------------------------------
-library(fitdistrplus)
-library(actuar)
-library(triangle)
-library(mc2d)
-library(zipfR)
 set.seed(8235411)
-pareto_data <- rpareto(5000, shape=5, scale=8)
+pareto_data <- actuar::rpareto(5000, shape=5, scale=8)
+
+dpareto <- actuar::dpareto
+ppareto <- actuar::ppareto
+qpareto <- actuar::qpareto
+
 head(pareto_data)
 hist(pareto_data, breaks=100)
 min(pareto_data); max(pareto_data); d=max(pareto_data)-min(pareto_data);d
-fit <- fitdist(pareto_data, "pareto", start = list(shape = 1, scale = 500))
+fit <- fitdistrplus::fitdist(pareto_data, "pareto", start = list(shape = 1, scale = 500))
 fit
 res <- strata.data(pareto_data, h = 2, n=500) # a 2-strata solution
 summary(res)
@@ -78,20 +80,31 @@ res <- strata.distr(h=2, initval=1.007202, dist=0.992781, distr = "rtriangle",
 summary(res)
 
 ## ----include=TRUE-------------------------------------------------------------
-data(faithful) #available data in R
-eruptions = faithful$eruptions
-res <- strata.data(eruptions, h = 2, n=20) # a 2-strata solution
+data(anaemia) #using the anaemia data
+Iron <- anaemia$Iron
+hist(Iron)
+min_value <- min(Iron) # Find the minimum value
+Iron[Iron == min_value] <- -0.001 # Replace the minimum value with -0.001
+res <- strata.data(Iron, h = 2, n=500) # a 2-strata solution
 summary(res)
 
 ## ----include=TRUE-------------------------------------------------------------
-res <- strata.distr(h=2, initval=1.6, dist=3.5, distr = "unif",
-       params = c(min=1.6, max=5.1), n=20, N=272)
+res <- strata.distr(h=2, initval=2.9, dist=55.9, distr = "weibull",
+       params = c(shape=2.144586, scale=13.790744), n=500, N=5000)
 summary(res)
 
 ## ----include=TRUE-------------------------------------------------------------
-data(quakes)
-mag <- quakes$mag
-res <- strata.data(mag, h = 2, n=200) # a 2-strata solution
+data(anaemia)
+Folate <- anaemia$Folate
+hist(Folate)
+min_value <- min(Folate) # Find the minimum value
+Folate[Folate == min_value] <- -0.001 # Replace the minimum value with -0.001
+res <- strata.data(Folate, h = 2, n=500) # a 2-strata solution
+summary(res)
+
+## ----include=TRUE-------------------------------------------------------------
+res <- strata.distr(h=2, initval=0.5, dist=50, distr = "gamma",
+       params = c(shape=3.835768, rate=0.340328), n=500, N=12000)
 summary(res)
 
 ## ----include=TRUE-------------------------------------------------------------
@@ -125,9 +138,10 @@ res <- strata.distr(h=2, initval=3, dist=12, distr = "unif",
 summary(res)
 
 ## ----include=TRUE-------------------------------------------------------------
-data(anaemia)
-Haemoglobin = anaemia$Haemoglobin - 6.2 #shift to left => normal
-res <- strata.data(Haemoglobin, h = 2, n=200) # a 2-strata solution
+set.seed(89821)
+data <- rnorm(5000, mean = 6, sd = 2.1)
+hist(data)
+res <- strata.data(data, h = 2, n=500) #construct a 2-strata solution
 summary(res)
 
 ## ----include=TRUE-------------------------------------------------------------

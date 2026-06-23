@@ -8,19 +8,13 @@ on the hypothetical distribution of the data}
 distr.alloc(my_env)
 }
 \arguments{
-\item{my_env}{The environment my_env which has various constants and outputs stored
-from earlier operations through various other functions}
+\item{my_env}{Environment carrying all precomputed values and constants.}
 }
 \value{
-\code{} calculates and stores quantities such as nh, Nh, Vh, etc.
-in the my_env to be accessed and printed as outputs
+Populates my_env$output, my_env$out, and totals (WhTot, NhTot, etc.)
 }
 \description{
-This function is called towards the final stages of the stratification process
-after OSB have been determined. It uses the boundaries to calculate the stratum
-sample allocations using Neyman allocation for all individual strata using the
-underlying distribution of the population.
-}
-\author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+Uses OSB to compute stratum weights (Wh), variances (Vh), Neyman allocations (nh),
+and related totals under a *given* population distribution. Integrations are
+cached per stratum; the output data.frame is built once at the end (faster).
 }

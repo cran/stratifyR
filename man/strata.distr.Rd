@@ -57,7 +57,7 @@ parameter estimates of the data. This MPP is then solved for the
 optimal solutions using the Dynamic Programming (DP) solution procedure.
 }
 \examples{
-\dontrun{
+\donttest{
 #Assume data has initial value of 1.5, distance of 33 and follows
 #weibull distribution with estimated parameters as shape=2.15 and scale=13.5
 #To compute the OSB, OSS, etc. with fixed sample n=500, we use:
@@ -96,5 +96,5 @@ quakes \%>\%
 \code{strata.data}
 }
 \author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr MGM Khan <khan_mg@usp.ac.fj>
 }

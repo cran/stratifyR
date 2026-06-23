@@ -28,7 +28,7 @@
 #' stratum weights (Wh), stratum costs (Ch), stratum variances (Vh), Optimum Sample Sizes
 #' (nh), stratum population sizes (Nh).
 #'
-#' @author Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+#' @author Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr MGM Khan <khan_mg@usp.ac.fj>
 #'
 #' @seealso \code{strata.data}
 #'
@@ -99,7 +99,7 @@ strata.distr <- function(h, initval, dist,
   my_env$N <- N
   my_env$cost <- cost #a scalar
   
-  if(cost=="TRUE"){
+  if(isTRUE(cost)){
      if(length(ch)!=h) 
         stop("The size of the 'ch' vector must match with the number of elements in h")
      my_env$ch <- ch #a vector of size h
@@ -125,9 +125,9 @@ strata.distr <- function(h, initval, dist,
   my_env$points <- 1000
   my_env$stages <- h+1
   my_env$ylimits <- integer(h+1)
-  my_env$p <- as.integer(my_env$dist*my_env$points)
-  my_env$e <- as.integer(my_env$dist*(my_env$points)*(my_env$z)+1)
-
+  my_env$p <- max(1L, as.integer(my_env$dist * my_env$points))
+  my_env$e <- max(1L, as.integer(my_env$dist * my_env$points * my_env$z) + 1L)
+  
   #create the matrix to store results
   create.mat(my_env)
   dk2 <- my_env$dk2
@@ -170,15 +170,15 @@ strata.distr <- function(h, initval, dist,
     else
     {
       d[i] <- d[i+1] - y[i+1]
-      temp <- as.integer(d[i]*points)
-      y[i] <- my_env$dk2[i+1, temp]
+      temp <- as.integer(d[i] * points)
+      y[i] <- my_env$dk2[i + 1L, temp + 1L]
       x[i] <- x[i+1] - y[i+1]
     }
   }
 
   for(i in h:1)
   {
-    my_env$ylimits[i+1] <- (y[i]*points*z)
+    my_env$ylimits[i+1] <- as.integer(y[i]*points*z)
   }
   #create osb for base case of k=2
   my_env$ObjFV <- distr.optim(k=h, n=e-1, incf=inc2,
@@ -203,8 +203,8 @@ strata.distr <- function(h, initval, dist,
     else
     {
       d[i] <- d[i+1] - y[i+1]
-      temp <- as.integer(d[i]*points*z)
-      y[i] <- my_env$dk2[i+1, temp]
+      temp <- as.integer(d[i] * points * z)
+      y[i] <- my_env$dk2[i + 1L, temp + 1L]
       x[i] <- x[i+1] - y[i+1]
     }
   }

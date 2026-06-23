@@ -2,28 +2,24 @@
 % Please edit documentation in R/data.root.R
 \name{data.root}
 \alias{data.root}
-\title{To calculate the objective function values}
+\title{Calculate the objective function value for a given (d, y)}
 \usage{
 data.root(d, y, c, my_env)
 }
 \arguments{
-\item{d}{A numeric: distance or range of data}
+\item{d}{numeric: remaining distance/range on the (scaled) axis}
 
-\item{y}{A numeric: stratum width}
+\item{y}{numeric: first stratum width on the (scaled) axis}
 
-\item{c}{A numeric: stratum cost}
+\item{c}{numeric: per stratum cost multiplier (Ch[k])}
 
-\item{my_env}{The environment my_env contains the constants and outputs
-from various calculations carried out by other key functions}
+\item{my_env}{environment: holds distribution name, parameters and scaling}
 }
 \value{
-\code{} returns the value of the objective function
+numeric: sqrt(objective) or -1 if branch is infeasible/invalid
 }
 \description{
-This function is called within other important functions in the stratifyR
-package to calculate the objective function values at systematic incremental
-progressions of stratum width and range of the data
-}
-\author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr MGM Khan <khan_mg@usp.ac.fj>
+Used by the DP recurrences to evaluate the stratification objective at
+a specific remaining distance 'd' and first-stratum width 'y', given
+stratum cost 'c' and constants tucked in 'my_env.'
 }

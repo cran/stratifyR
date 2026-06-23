@@ -2,29 +2,30 @@
 % Please edit documentation in R/distr.root.R
 \name{distr.root}
 \alias{distr.root}
-\title{Calculate the objective function values}
+\title{Calculate the objective function value for a given (d, y) under a
+hypothesized distribution (scaled-data formulation)}
 \usage{
 distr.root(d, y, c, my_env)
 }
 \arguments{
-\item{d}{A numeric: distance or range of data}
+\item{d}{numeric: remaining distance/range on the (scaled) axis}
 
-\item{y}{A numeric: stratum width}
+\item{y}{numeric: width of the first stratum on the (scaled) axis}
 
-\item{c}{A numeric: stratum cost}
+\item{c}{numeric: per stratum cost multiplier (Ch[k])}
 
-\item{my_env}{My environment my_env contains the constants and outputs
-from various calculations carried out by other key functions}
+\item{my_env}{environment: holds distribution name, scaled parameters,
+and scaling constants ('initval', 'maxval', etc.)}
 }
 \value{
-\code{} returns the value of the objective function
+numeric: sqrt(objective) or -1 if branch is infeasible/invalid
 }
 \description{
-This function is called within other important functions in the package
-to calculate the objective function values at systematic incremental
-progressions of stratum width and range of the data
+Used by the DP recurrences in the "distribution-known" pathway. All
+distribution parameters are interpreted on the "scaled" axis
+(initval .. initval+dist), consistent with 'strata.distr()'.
 }
 \author{
-Karuna Reddy <karuna.reddy@usp.ac.fj>\cr
+Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr
 MGM Khan <khan_mg@usp.ac.fj>
 }
