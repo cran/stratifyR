@@ -122,9 +122,19 @@ summary.strata <- function(object, ...) {
    }, error = function(e) NULL)
    
    ## --- 2) Build results table -------------------------------------------------
+   # OSB: COBYLA returns h-1 interior boundaries; DP returns h values (interior +
+   # final). Pad to exactly h elements so the data.frame row counts match.
+   osb_vec <- as.numeric(object$OSB)
+   if (length(osb_vec) < h) {
+      final_val <- round(object$maxval * object$finval, 2)
+      osb_vec   <- c(osb_vec, rep(final_val, h - length(osb_vec)))
+   } else {
+      osb_vec <- osb_vec[seq_len(h)]
+   }
+
    tab2 <- data.frame(
       Strata = object$h$Strata %||% seq_len(h),
-      OSB    = object$OSB,
+      OSB    = osb_vec,
       Wh     = object$Wh,
       Vh     = object$Vh,
       WhSh   = object$WhSh,
@@ -187,7 +197,7 @@ summary.strata <- function(object, ...) {
       esc <- TRUE
       if (is_html && requireNamespace("kableExtra", quietly = TRUE)) {
          # Pre-format non-total OSB/WhSh if you want color in those columns:
-         # (We keep column-level color instead—see column_spec below.)
+         # (We keep column-level color instead-see column_spec below.)
          
          kb <- knitr::kable(
             tab_html,

@@ -4,11 +4,14 @@
 \alias{strata.data}
 \title{Stratification of Univariate Survey Population Using the Data}
 \usage{
-strata.data(data, h, n, cost = FALSE, ch = NULL)
+strata.data(data, h, n, cost = FALSE, ch = NULL,
+            method = c("dp", "cobyla", "global"),
+            n_starts = 20L, max_iter = 2000L, tol = 1e-09,
+            verbose = FALSE)
 }
 \arguments{
 \item{data}{A vector of values of the survey variable y for
-which the OSB are determined}
+which the OSB are determined.}
 
 \item{h}{A numeric: denotes the number of strata to be created.}
 
@@ -19,6 +22,20 @@ cost=TRUE, with which, one must provide the Ch parameter.}
 
 \item{ch}{A numeric: denotes a vector of stratum costs. When cost=FALSE, it
 has a default of NULL.}
+
+\item{method}{Character. Optimisation method: \code{"cobyla"} (fast multi-start
+COBYLA, default), \code{"dp"} (original Dynamic Programming solver), or
+\code{"global"} (exhaustive global search).}
+
+\item{n_starts}{Integer. Number of random restarts for the COBYLA solver.
+Default \code{20L}. Ignored when \code{method = "dp"}.}
+
+\item{max_iter}{Integer. Maximum function evaluations per COBYLA start.
+Default \code{2000L}.}
+
+\item{tol}{Numeric. Convergence tolerance for COBYLA. Default \code{1e-9}.}
+
+\item{verbose}{Logical. Print per-start progress. Default \code{FALSE}.}
 }
 \value{
 \code{strata.data} returns Optimum Strata Boundaries (OSB),
@@ -38,7 +55,7 @@ estimated from the data. This MPP is then solved for the
 OSB using a Dynamic Programming (DP) solution procedure.
 }
 \examples{
-\donttest{
+\dontrun{
 data <- rweibull(1000, shape=2, scale = 1.5)
 hist(data)
 obj <- strata.data(data, h = 2, n=300)
@@ -47,6 +64,12 @@ summary(obj)
 data(anaemia)
 Iron <- anaemia$Iron
 res <- strata.data(Iron, h = 2, n=350)
+summary(res)
+#-------------------------------------------------------------
+data(SHS) #Household Spending data from stratification package
+weight <- SHS$WEIGHT
+hist(weight); length(weight)
+res <- strata.data(weight, h = 2, n=500)
 summary(res)
 #-------------------------------------------------------------
 data(sugarcane)

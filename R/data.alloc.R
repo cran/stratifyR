@@ -15,16 +15,18 @@ data.alloc <- function(data, my_env)
   initval <- my_env$initval * my_env$maxval          # back to real (unscaled) units
   n       <- my_env$n
   x       <- c(initval, my_env$df$x * my_env$maxval) # OSB (including left edge) on real scale
-  ch      <- my_env$ch                               # per–stratum unit costs
+  ch      <- my_env$ch                               # per-stratum unit costs
   
   # preallocate result vectors (faster than growing them)
   var  <- numeric(h)  # stratum sample variances from raw data
   Wh   <- numeric(h)  # stratum weights from raw data
-  nume <- numeric(h)  # numerator term in Neyman allocation: Wh * Sh * sqrt(cost)
+  whsh <- numeric(h)  # pure Neyman contribution Wh * Sh (reported, cost-free)
+  nume <- numeric(h)  # cost-optimal allocation weight Wh * Sh / sqrt(cost)
   nh   <- numeric(h)  # sample sizes per stratum
   Nh   <- numeric(h)  # population counts per stratum
   fh   <- numeric(h)  # sampling fractions per stratum
-  deno <- 0           # sum of 'nume' across strata
+  deno <- 0           # sum of pure Wh*Sh across strata (the Neyman cost)
+  adeno <- 0          # sum of cost-adjusted allocation weights
   
   # -------- compute Wh, Vh, Nh from data --------
   data <- sort(data)
@@ -35,22 +37,27 @@ data.alloc <- function(data, my_env)
     slice   <- data[data >= x[i] & data <= x[i + 1L]]
     Nh[i]   <- length(slice)
     Wh[i]   <- Nh[i] / Ntot
-    var[i]  <- try(stats::var(slice), silent = TRUE)
-    nume[i] <- Wh[i] * sqrt(var[i]) * sqrt(ch[i])
-    deno    <- deno + nume[i]
+    # Guard: var() returns NA for 0- or 1-element slices; treat as 0
+    var[i]  <- if (length(slice) >= 2L) stats::var(slice) else 0
+    whsh[i] <- Wh[i] * sqrt(var[i])            # pure Neyman contribution
+    nume[i] <- whsh[i] / sqrt(ch[i])           # cost-optimal allocation weight
+    deno    <- deno + whsh[i]
+    adeno   <- adeno + nume[i]
   }
   
   # -------- build summary table ONCE (moved out of the loop) --------
   my_env$output <- data.frame(
     Wh   = round(Wh,  2),
     Vh   = round(var, 2),
-    WhSh = round(nume, 3)
+    WhSh = round(whsh, 3)
   )
   my_env$Nh <- Nh
   
   # -------- initial Neyman allocation (sum to n) --------
+  # Guard: if deno is zero or NA (all strata empty/singleton), fall back to equal allocation
+  if (is.na(adeno) || adeno <= 0) adeno <- 1
   for (i in 1:(length(x) - 1L)) {
-    nh[i] <- n * nume[i] / deno
+    nh[i] <- n * nume[i] / adeno
   }
   
   # -------- fix oversampling if any nh > Nh (your existing logic) --------
@@ -67,7 +74,7 @@ data.alloc <- function(data, my_env)
   }
   
   # -------- assemble user-facing outputs and totals --------
-  fh <- round(nh / Nh, 2)
+  fh <- ifelse(Nh == 0, 0, round(nh / Nh, 2))   # guard: 0/0 -> 0 for empty strata
   my_env$out <- data.frame(nh = round(nh), Nh = Nh, fh = fh)
   
   my_env$deno  <- round(deno, 3)

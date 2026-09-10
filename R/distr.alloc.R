@@ -15,7 +15,7 @@ distr.alloc <- function(my_env)
   x       <- c(initval, my_env$df$x * my_env$maxval)      # OSB on real scale (including left edge)
   n       <- my_env$n
   N       <- my_env$N
-  ch      <- my_env$ch                                     # per–stratum unit cost (length h)
+  ch      <- my_env$ch                                     # per-stratum unit cost (length h)
   distr   <- my_env$obj["distr"]                           # distribution name (character)
   
   # ----------------------- preallocate outputs -------------------------------
@@ -23,15 +23,17 @@ distr.alloc <- function(my_env)
   AWh  <- numeric(h)   # adjusted weights (for tail coverage; used for totals except 'unif')
   Nh   <- numeric(h)   # stratum population sizes (N * AWh or N * Wh for 'unif')
   Vh   <- numeric(h)   # stratum variances under the assumed distribution
-  nume <- numeric(h)   # Wh * Sh * sqrt(cost), numerator term in Neyman allocation
-  deno <- 0            # sum of 'nume' across strata
+  whsh <- numeric(h)   # pure Neyman contribution Wh * Sh (reported, cost-free)
+  nume <- numeric(h)   # cost-optimal allocation weight Wh * Sh / sqrt(cost)
+  deno <- 0            # sum of pure Wh*Sh across strata (the Neyman cost)
+  adeno <- 0           # sum of cost-adjusted allocation weights
   nh   <- numeric(h)   # sample allocation per stratum
   fh   <- numeric(h)   # sampling fraction per stratum
   
   # ----------------------- tail adjustment window for AWh --------------------
   # For one-sided families (e.g., Weibull, Gamma, Exp, Lnorm, etc.), the OSB
   # may cut off small/non-negligible tails. We create 'y' as an adjusted window
-  # used ONLY for AWh and Nh so weights sum ≈ 1 without biasing Vh, Wh, etc.
+  # used ONLY for AWh and Nh so weights sum approx  1 without biasing Vh, Wh, etc.
   y <- x
   d <- y[length(y)] - y[1]
   if (d < 10)          { y[1] <- 0;           y[length(y)] <- y[length(y)] + 10     }
@@ -66,7 +68,7 @@ distr.alloc <- function(my_env)
       ex2    <- Ex2W(x[i], x[i+1]) / wh
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
@@ -90,7 +92,7 @@ distr.alloc <- function(my_env)
       ex2    <- Ex2G(x[i], x[i+1]) / wh
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
@@ -111,7 +113,7 @@ distr.alloc <- function(my_env)
       ex2    <- Ex2E(x[i], x[i+1]) / wh
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
@@ -141,7 +143,7 @@ distr.alloc <- function(my_env)
       ex2    <- Ex2N(x[i], x[i+1]) / wh
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
@@ -164,7 +166,7 @@ distr.alloc <- function(my_env)
       ex2    <- Ex2L(x[i], x[i+1]) / wh
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
@@ -194,7 +196,7 @@ distr.alloc <- function(my_env)
       ex2    <- Ex2C(x[i], x[i+1]) / wh
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
@@ -219,7 +221,7 @@ distr.alloc <- function(my_env)
       ex2    <- Ex2U(x[i], x[i+1]) / wh
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
@@ -265,7 +267,7 @@ distr.alloc <- function(my_env)
       }
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
@@ -289,7 +291,7 @@ distr.alloc <- function(my_env)
       ex2 <- Ex2RT(x[i], x[i+1]) / wh
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
@@ -314,13 +316,14 @@ distr.alloc <- function(my_env)
       ex2 <- Ex2P(x[i], x[i+1]) / wh
       Wh[i]  <- wh
       Vh[i]  <- ex2 - ex^2
-      nume[i] <- Wh[i] * sqrt(Vh[i]) * sqrt(ch[i]); deno <- deno + nume[i]
+      whsh[i] <- Wh[i] * sqrt(Vh[i]); nume[i] <- whsh[i] / sqrt(ch[i]); deno <- deno + whsh[i]; adeno <- adeno + nume[i]
     }
   }
   
   # ----------------------- Neyman allocation & oversample fix ----------------
-  # nh ∝ Wh * Sh * sqrt(cost) with sum(nh) = n; then fix oversampling if any nh > Nh
-  for (i in 1:(length(x) - 1)) nh[i] <- n * nume[i] / deno
+  # nh proportional to Wh * Sh * sqrt(cost) with sum(nh) = n; then fix oversampling if any nh > Nh
+  if (is.na(adeno) || adeno <= 0) adeno <- 1
+  for (i in 1:(length(x) - 1)) nh[i] <- n * nume[i] / adeno
   
   realloc(h, x, nh, Nh, nume, my_env)
   nh <- my_env$nh
@@ -344,7 +347,7 @@ distr.alloc <- function(my_env)
   my_env$output <- data.frame(
     Wh   = round(outWh, 2),
     Vh   = round(Vh,    2),
-    WhSh = round(nume,  3)
+    WhSh = round(whsh,  3)
   )
   
   # ----------------------- totals for summary() ------------------------------

@@ -51,46 +51,51 @@ data.root <- function(d, y, c, my_env)
     
     g1r <- Gamma(1 + 1/r)
     g2r <- Gamma(1 + 2/r)
-    
-    A <- (t^2) * g2r * (
-      exp(-((d - y + initval - g)/t)^r) - exp(-((d + initval - g)/t)^r)
-    )
-    B <- UGamma((2/r) + 1, ((d - y + initval - g)/t)^r) -
-      UGamma((2/r) + 1, ((d + initval - g)/t)^r)
+
+    la <- ((d - y + initval - g) / t)^r
+    ra <- ((d + initval - g) / t)^r
+
+    ## Use regularised Q = pgamma(..., lower.tail=FALSE) - NOT UGamma which
+    ## includes an extra Gamma(s) factor that distorts calc away from Wh^2*Sh^2.
+    A <- (t^2) * g2r * (exp(-la) - exp(-ra))
+    B <- pgamma(la, shape = (2/r) + 1, lower.tail = FALSE) -
+         pgamma(ra, shape = (2/r) + 1, lower.tail = FALSE)
     C <- t * g1r * (
-      UGamma((1/r) + 1, ((d - y + initval - g)/t)^r) -
-        UGamma((1/r) + 1, ((d + initval - g)/t)^r)
+      pgamma(la, shape = (1/r) + 1, lower.tail = FALSE) -
+      pgamma(ra, shape = (1/r) + 1, lower.tail = FALSE)
     )
-    
+
     calc <- (A * B - (C^2)) * c
   }
-  
+
   ## ===========================================================================
   ## Gamma branch
   ##  Parameters:
   ##   - r: shape, f: rate, t = 1/f: scale, g: location (0)
-  ##  Notes:
-  ##   - Every zipfR::Rgamma(s, z) -> UGamma(s, z).
   ## ===========================================================================
   if (distr == "gamma") {
     r <- my_env$obj[["params"]]["shape"]
     f <- my_env$obj[["params"]]["rate"]
     t <- 1 / f
     g <- 0
-    
+
+    la <- (d - y + initval - g) / t
+    ra <- (d + initval - g) / t
+
+    ## pgamma replaces UGamma for the same reason as the Weibull branch above.
     A <- (t^2) * r * (r + 1) * (
-      UGamma(r,   (d - y + initval - g)/t) -
-        UGamma(r,   (d + initval - g)/t)
+      pgamma(la, shape = r,   lower.tail = FALSE) -
+      pgamma(ra, shape = r,   lower.tail = FALSE)
     )
     B <- (
-      UGamma(r+2, (d - y + initval - g)/t) -
-        UGamma(r+2, (d + initval - g)/t)
+      pgamma(la, shape = r+2, lower.tail = FALSE) -
+      pgamma(ra, shape = r+2, lower.tail = FALSE)
     )
     C <- t * r * (
-      UGamma(r+1, (d - y + initval - g)/t) -
-        UGamma(r+1, (d + initval - g)/t)
+      pgamma(la, shape = r+1, lower.tail = FALSE) -
+      pgamma(ra, shape = r+1, lower.tail = FALSE)
     )
-    
+
     calc <- (A * B - (C^2)) * c
   }
   

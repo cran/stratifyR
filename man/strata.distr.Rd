@@ -15,20 +15,25 @@ strata.distr(
   n,
   N,
   cost = FALSE,
-  ch = NULL
+  ch = NULL,
+  method = c("dp", "cobyla", "global"),
+  n_starts = 20L,
+  max_iter = 2000L,
+  tol = 1e-09,
+  verbose = FALSE
 )
 }
 \arguments{
 \item{h}{A numeric: denotes the number of strata to be created.}
 
-\item{initval}{A numeric: denotes the initial value of the population}
+\item{initval}{A numeric: denotes the initial value of the population.}
 
-\item{dist}{A numeric: denotes distance (or range) of the population}
+\item{dist}{A numeric: denotes distance (or range) of the population.}
 
 \item{distr}{A character: denotes the name of the distribution that
-characterizes the population}
+characterizes the population.}
 
-\item{params}{A list: contains the values of all parameters of the distribution}
+\item{params}{A list: contains the values of all parameters of the distribution.}
 
 \item{n}{A numeric: denotes the fixed total sample size.}
 
@@ -38,6 +43,20 @@ characterizes the population}
 cost=TRUE, with which one must provide the Ch parameter.}
 
 \item{ch}{A numeric: denotes a vector of stratum costs.}
+
+\item{method}{Character. Optimisation method: \code{"cobyla"} (fast multi-start
+COBYLA, default), \code{"dp"} (original Dynamic Programming solver), or
+\code{"global"} (exhaustive global search).}
+
+\item{n_starts}{Integer. Number of random restarts for the COBYLA solver.
+Default \code{20L}. Ignored when \code{method = "dp"}.}
+
+\item{max_iter}{Integer. Maximum function evaluations per COBYLA start.
+Default \code{2000L}.}
+
+\item{tol}{Numeric. Convergence tolerance for COBYLA. Default \code{1e-9}.}
+
+\item{verbose}{Logical. Print per-start progress. Default \code{FALSE}.}
 }
 \value{
 \code{strata.distr} returns Optimum Strata Boundaries (OSB),
@@ -57,7 +76,7 @@ parameter estimates of the data. This MPP is then solved for the
 optimal solutions using the Dynamic Programming (DP) solution procedure.
 }
 \examples{
-\donttest{
+\dontrun{
 #Assume data has initial value of 1.5, distance of 33 and follows
 #weibull distribution with estimated parameters as shape=2.15 and scale=13.5
 #To compute the OSB, OSS, etc. with fixed sample n=500, we use:

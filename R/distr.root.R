@@ -59,12 +59,20 @@ distr.root <- function(d, y, c, my_env)
     g1r <- Gamma(1 + 1/r)
     g2r <- Gamma(1 + 2/r)
 
+    ## Left and right boundary arguments (scaled)
     la <- ((d - y + initval - g) / t)^r
     ra <- ((d + initval - g) / t)^r
 
-    ## Use regularised Q = pgamma(..., lower.tail=FALSE) — NOT UGamma which
-    ## includes an extra Gamma(s) factor that distorts calc away from Wh^2*Sh^2.
+    ## A = t^2 * g2r * Wh  (unchanged - Wh uses exp(), no UGamma)
     A <- (t^2) * g2r * (exp(-la) - exp(-ra))
+
+    ## B and C must use the REGULARISED upper incomplete gamma Q(s,z) =
+    ## pgamma(z, shape=s, lower.tail=FALSE), NOT UGamma = Gamma(s)*Q(s,z).
+    ## Using UGamma here inserts an extra Gamma(s) factor that distorts the
+    ## objective so that sqrt(calc) != Wh*Sh.  With pgamma:
+    ##   A*B  = t^2 * g2r * Wh * Q_diff_2  = Wh * integral(x^2 f(x))  [ok]
+    ##   C^2  = t^2 * g1r^2 * Q_diff_1^2   = (integral(x f(x)))^2      [ok]
+    ##   calc = Wh * E[X^2] - E[X]^2        = Wh^2 * Sh^2              [ok]
     B <- pgamma(la, shape = (2/r) + 1, lower.tail = FALSE) -
          pgamma(ra, shape = (2/r) + 1, lower.tail = FALSE)
     C <- t * g1r * (
@@ -74,22 +82,32 @@ distr.root <- function(d, y, c, my_env)
 
     calc <- (A * B - (C^2)) * cost
   }
-
+  
   ## ===========================================================================
   ## Gamma branch (scaled)
   ##  Parameters on the scaled axis:
   ##   - r: shape (unchanged), f: rate * maxval, t = 1/f, g: 0
+  ##  Notes:
+  ##   - zipfR::Rgamma -> UGamma; prefactors unchanged.
   ## ===========================================================================
   if (distr == "gamma") {
     r <- my_env$obj[["params"]]["shape"]
     f <- my_env$obj[["params"]]["rate"] * maxval  # rate is multiplied by maxval
     t <- 1 / f                                    # scale on the scaled axis
     g <- 0
-
+    
+    ## Left/right scaled boundary args
     la <- (d - y + initval - g) / t
     ra <- (d + initval - g) / t
 
-    ## pgamma replaces UGamma for the same reason as the Weibull branch above.
+    ## Use regularised Q = pgamma(..., lower.tail=FALSE) instead of UGamma.
+    ## Derivation (Gamma(r, scale=t)):
+    ##   integral(x^k f(x)) = t^k * (Gamma(r+k)/Gamma(r)) * Q_diff_{r+k}
+    ## With Q instead of UGamma the coefficients r*(r+1) and r carry the full
+    ## Gamma ratio, giving:
+    ##   A*B = t^2*r*(r+1)*Q_r * Q_{r+2}  = Wh * integral(x^2 f(x))   [ok]
+    ##   C^2 = t^2*r^2 * Q_{r+1}^2        = (integral(x f(x)))^2       [ok]
+    ##   calc = Wh^2 * Sh^2                                              [ok]
     A <- (t^2) * r * (r + 1) * (
       pgamma(la, shape = r,   lower.tail = FALSE) -
       pgamma(ra, shape = r,   lower.tail = FALSE)

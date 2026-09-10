@@ -16,14 +16,5 @@ Console: aligned ASCII table with crayon colors (if supported).
 HTML: kable + kableExtra with yellow TOTAL row (text only, no background).}
 }
 \description{
-Nicely formatted (and colored) summary for \code{"strata"} objects.
-Prints an aligned ASCII table with optional crayon colors to the console,
-or returns a \pkg{knitr} kable table in knitted documents.
-}
-\value{
-Invisibly returns a data frame containing the per-stratum results and
-totals (columns: \code{Strata}, \code{OSB}, \code{Wh}, \code{Vh},
-\code{WhSh}, \code{nh}, \code{Nh}, \code{fh}), with a \code{"Total"} row
-appended.  In a \pkg{knitr} HTML context a \code{kableExtra} table object
-is returned instead.
+Format and Present Results
 }

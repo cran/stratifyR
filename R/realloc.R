@@ -26,6 +26,10 @@ DhTot <- 0
 
 for(i in 1:(length(x)-1))
    {
+      # Guard against NA/NaN nh values (can arise from empty strata)
+      if(is.na(nh[i]) || is.nan(nh[i])) nh[i] <- 0
+      if(is.na(Nh[i])) Nh[i] <- 0
+
       #nh is less than or equal to stratum population totals
       if(nh[i] == Nh[i]){
          nh[i] <- nh[i] #no problem
@@ -44,8 +48,10 @@ for(i in 1:(length(x)-1))
    #re-alloc as per weighting of WhSh where pop units are available
    for(i in 1:(length(x)-1))
    {
-      if(nh[i] < Nh[i]){
-         nh[i] <- nh[i] + DhTot*(nume[i]/deno.new)#add to strata where space available
+      if(!is.na(nh[i]) && !is.na(Nh[i]) && nh[i] < Nh[i]){
+         if(deno.new > 0) {
+            nh[i] <- nh[i] + DhTot*(nume[i]/deno.new)#add to strata where space available
+         }
       }
    }
   my_env$nh <- nh #return samples

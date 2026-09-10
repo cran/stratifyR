@@ -58,8 +58,11 @@ data.optim <- function(k, n, incf, minYk, maxYk, isFirstRun = TRUE, my_env)
       
       # if no valid i in this window -> mark impossible and return
       if (i_min > i_max) {
-         my_env$minkf2[k + 1L, n + 1L] <- Inf
-         my_env$dk2[  k + 1L, n + 1L] <- NA_real_
+         nr_m <- nrow(my_env$minkf2); nc_m <- ncol(my_env$minkf2)
+         if (k + 1L <= nr_m && n + 1L <= nc_m) {
+            my_env$minkf2[k + 1L, n + 1L] <- Inf
+            my_env$dk2[  k + 1L, n + 1L] <- NA_real_
+         }
          return(Inf)
       }
       
@@ -75,9 +78,10 @@ data.optim <- function(k, n, incf, minYk, maxYk, isFirstRun = TRUE, my_env)
          # remaining distance index (columns move "left" by i)
          col <- as.integer(n - i)
          
-         # guard against any residual off-by-one / negative
-         if (col < 0L || col > n) next
-         
+         # guard against any residual off-by-one / negative, AND matrix bounds
+         nc_m <- ncol(my_env$minkf2)
+         if (col < 0L || col > n || col + 1L > nc_m || col + 1L < 1L) next
+
          # --- DP memoization: if not computed, recurse; else read cache ---
          add <- my_env$minkf2[k, col + 1L]
          if (identical(add, -9999)) {
@@ -113,9 +117,12 @@ data.optim <- function(k, n, incf, minYk, maxYk, isFirstRun = TRUE, my_env)
    }
    
    # --- write DP cell (store value and argmin y) ---
-   # rows are k+1, columns are n+1 (1-based)
-   my_env$minkf2[k + 1L, n + 1L] <- dblRetVal
-   my_env$dk2[  k + 1L, n + 1L] <- miny
+   # rows are k+1, columns are n+1 (1-based); guard against oversized indices
+   nr_m <- nrow(my_env$minkf2); nc_m <- ncol(my_env$minkf2)
+   if (k + 1L >= 1L && k + 1L <= nr_m && n + 1L >= 1L && n + 1L <= nc_m) {
+      my_env$minkf2[k + 1L, n + 1L] <- dblRetVal
+      my_env$dk2[  k + 1L, n + 1L] <- miny
+   }
    
    return(dblRetVal)
 }
