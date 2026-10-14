@@ -1,7 +1,7 @@
 # =============================================================================
 # fit_distribution.R  --  stratifyR 2.0
 #
-# Internal helper (also exported) used by strata.data() and strata.distr()
+# Internal helper (not exported) used by strata.data() and strata.distr()
 # to fit the best parametric distribution to a data vector.
 #
 # Supports 10 families (matching the original package) plus
@@ -54,7 +54,8 @@
 #'
 #' @seealso \code{\link{strata.data}}, \code{\link{strata.distr}}
 #'
-#' @export
+#' @keywords internal
+#' @noRd
 fit_distribution <- function(data,
                               family    = "auto",
                               criterion = c("aic", "bic"),

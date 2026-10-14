@@ -5,7 +5,7 @@
 \title{Stratification of Univariate Survey Population Using the Data}
 \usage{
 strata.data(data, h, n, cost = FALSE, ch = NULL,
-            method = c("dp", "cobyla", "global"),
+            method = c("dp", "cobyla", "global", "exact"),
             n_starts = 20L, max_iter = 2000L, tol = 1e-09,
             verbose = FALSE)
 }
@@ -23,12 +23,19 @@ cost=TRUE, with which, one must provide the Ch parameter.}
 \item{ch}{A numeric: denotes a vector of stratum costs. When cost=FALSE, it
 has a default of NULL.}
 
-\item{method}{Character. Optimisation method: \code{"cobyla"} (fast multi-start
-COBYLA, default), \code{"dp"} (original Dynamic Programming solver), or
-\code{"global"} (exhaustive global search).}
+\item{method}{Character. Optimisation method. \code{"dp"} (default) is the
+original Dynamic Programming solver, globally optimal on a 1,000-point grid for
+the fitted distribution. \code{"exact"} runs Dynamic Programming on the data and
+returns the partition with the smallest empirical Neyman cost over all
+partitions with at least two units per stratum; with more than 20,000 distinct
+cut points it searches 20,000 cut points spread evenly in rank (set
+\code{options(stratifyR.exact_max_cand = )} to change this).
+\code{"cobyla"} is a fast multi-start search (COBYLA and BOBYQA) on the
+empirical objective, and \code{"global"} is a DIRECT-L global search followed
+by local refinement.}
 
 \item{n_starts}{Integer. Number of random restarts for the COBYLA solver.
-Default \code{20L}. Ignored when \code{method = "dp"}.}
+Default \code{20L}. Used only by \code{"cobyla"}.}
 
 \item{max_iter}{Integer. Maximum function evaluations per COBYLA start.
 Default \code{2000L}.}
@@ -38,7 +45,9 @@ Default \code{2000L}.}
 \item{verbose}{Logical. Print per-start progress. Default \code{FALSE}.}
 }
 \value{
-\code{strata.data} returns Optimum Strata Boundaries (OSB),
+\code{strata.data} returns an object of class \code{"strata"} with the
+Optimum Strata Boundaries (OSB; the upper boundary of each stratum, the last
+being the largest data value),
 stratum weights (Wh), stratum variances (Vh), Optimum Sample Sizes
 (nh), stratum population sizes (Nh) and sampling fraction (fh).
 }
@@ -55,6 +64,12 @@ estimated from the data. This MPP is then solved for the
 OSB using a Dynamic Programming (DP) solution procedure.
 }
 \examples{
+\donttest{
+data(sugarcane)
+dp    <- strata.data(sugarcane$Production, h = 4, n = 500)
+exact <- strata.data(sugarcane$Production, h = 4, n = 500, method = "exact")
+c(dp = dp$WhShTot, exact = exact$WhShTot)
+}
 \dontrun{
 data <- rweibull(1000, shape=2, scale = 1.5)
 hist(data)
@@ -96,5 +111,5 @@ quakes \%>\%
 \code{strata.distr}
 }
 \author{
-Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr MGM Khan <khan_mg@usp.ac.fj>
+Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr MGM Khan <mgm.khan@usp.ac.fj>
 }

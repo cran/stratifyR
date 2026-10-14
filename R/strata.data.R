@@ -17,15 +17,17 @@
 #' directly from a population dataset by (1) fitting the best-matching
 #' parametric distribution via AIC, (2) formulating the stratification
 #' problem as a Mathematical Programming Problem (MPP), and (3) solving it
-#' with the original Dynamic Programming (DP) technique (default) or the
-#' fast multi-start COBYLA optimiser.
+#' with the original Dynamic Programming (DP) technique (default) or one of
+#' three alternatives.
 #'
 #' The default solver (\code{method = "dp"}) uses the original Dynamic
-#' Programming grid search, which guarantees a globally optimal solution.
-#' The alternative COBYLA solver (\code{method = "cobyla"}) evaluates the
-#' per-stratum objective analytically and uses a gradient-free nonlinear
-#' optimiser seeded from \code{n_starts} random starting points; its solution
-#' quality is validated by the Cauchy-Schwarz optimality-gap diagnostic.
+#' Programming grid search, which is globally optimal on a 1,000-point grid
+#' for the \emph{fitted} distribution. \code{method = "exact"} runs Dynamic
+#' Programming on the data themselves and returns the partition with the
+#' smallest empirical Neyman cost over all partitions with at least two units
+#' per stratum. \code{method = "cobyla"} (multi-start COBYLA and BOBYQA) and
+#' \code{method = "global"} (DIRECT-L followed by local refinement) are fast
+#' continuous searches on the empirical objective.
 #'
 #' @param data    A numeric vector containing every unit of the survey
 #'   population (the stratification variable \eqn{y}).
@@ -35,8 +37,12 @@
 #'   Set \code{TRUE} and supply \code{ch} for cost-aware Neyman allocation.
 #' @param ch      Numeric vector of length \code{h}. Per-stratum sampling
 #'   costs; required when \code{cost = TRUE}.
-#' @param method  Character.  \code{"dp"} (default) uses the original Dynamic
-#'   Programming solver; \code{"cobyla"} uses the fast multi-start alternative.
+#' @param method  Character. \code{"dp"} (default) is the original Dynamic
+#'   Programming solver on the fitted distribution; \code{"exact"} is Dynamic
+#'   Programming on the data (exact for the data; when there are more than
+#'   20,000 distinct cut points it searches 20,000 cut points spread evenly in
+#'   rank, see \code{options(stratifyR.exact_max_cand)}); \code{"cobyla"} and
+#'   \code{"global"} are fast continuous solvers on the empirical objective.
 #' @param n_starts Integer. Number of random restarts for COBYLA
 #'   (ignored when \code{method = "dp"}).  Default \code{20L}.
 #' @param max_iter Integer. Maximum function evaluations per COBYLA start.
@@ -53,7 +59,9 @@
 #'     \item{\code{optimality_gap}}{Cauchy-Schwarz fractional gap (COBYLA only).}
 #'     \item{\code{kkt_residuals}}{First-order KKT residuals at the solution.}
 #'     \item{\code{converged}}{Logical convergence flag.}
-#'     \item{\code{method}}{Solver used (\code{"cobyla"} or \code{"dp"}).}
+#'     \item{\code{method}}{Solver used.}
+#'     \item{\code{exact_full}}{For \code{method = "exact"}: \code{TRUE} if every
+#'       possible cut point was searched.}
 #'     \item{\code{data_internal}}{The input data vector (used by \code{plot.strata}).}
 #'   }
 #'
@@ -96,7 +104,7 @@ strata.data <- function(data,
                          n,
                          cost     = FALSE,
                          ch       = NULL,
-                         method   = c("dp", "cobyla", "global"),
+                         method   = c("dp", "cobyla", "global", "exact"),
                          n_starts = 20L,
                          max_iter = 2000L,
                          tol      = 1e-9,
@@ -161,6 +169,8 @@ strata.data <- function(data,
                                n_starts, max_iter, tol, verbose)
   } else if (method == "global") {
     OSB <- .solve_global_data(h, n, N, my_env, max_iter, tol, verbose)
+  } else if (method == "exact") {
+    OSB <- .solve_exact_data(data_raw, h, n, N, my_env)
   } else {
     OSB <- .solve_dp_data(h, n, N, my_env)
   }
@@ -223,6 +233,7 @@ strata.data <- function(data,
                kkt_residuals   = kkt_resid,
                converged       = converged,
                method          = method,
+               exact_full      = attr(OSB, "exact_full"),
                data_internal   = data_raw)   # for plot.strata()
 
   result <- c(out1, out2, out3, out4)
@@ -374,7 +385,10 @@ strata.data <- function(data,
   }
 
   my_env$df <- data.frame(h, d, y, x)
-  OSB <- round(my_env$maxval * my_env$df$x, digits = 2)
+  # v2.0-2: keep full precision and make the top boundary the data maximum
+  # (rounding the top boundary down used to drop the largest unit(s)).
+  OSB <- my_env$maxval * my_env$df$x
+  OSB[h] <- my_env$maxval * my_env$finval
   .store_osb_env(OSB, my_env, h)
 
   attr(OSB, "converged")      <- TRUE
@@ -392,7 +406,7 @@ strata.data <- function(data,
     h = seq_len(h),
     d = NA_real_,
     y = NA_real_,
-    x = c(OSB / my_env$maxval, my_env$finval)[seq_len(h)]
+    x = c(as.numeric(OSB)[seq_len(h - 1L)] / my_env$maxval, my_env$finval)
   )
 }
 

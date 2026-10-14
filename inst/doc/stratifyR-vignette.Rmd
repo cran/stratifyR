@@ -2,7 +2,7 @@
 title: "R Package 'stratifyR'"
 author: "K.G. Reddy & M.G.M. Khan"
 package: stratifyR
-date: June 04, 2026
+date: October 14, 2026
 output:
   rmarkdown::html_document:
     toc: true
@@ -37,31 +37,32 @@ library(triangle)
 
 **Title** Optimal Stratification of Univariate Populations
 
-**Version** 2.0-1
+**Version** 2.0-2
 
-**Date** 2026-06-04
+**Date** 2026-10-14
 
 **Author** Karuna G. Reddy, M.G.M. Khan
 
 **Maintainer** Karuna G. Reddy \<karuna.reddy@auckland.ac.nz\>
 
-**Description** This implements the stratification of univariate populations under stratified sampling designs using the method of Khan et al. (2002) <https://doi.org/10.1177/0008068320020518>, Khan et al. (2008) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2008002/article/10761-eng.pdf> and Khan et al. (2015) <https://doi.org/10.1080/02664763.2015.1018674>. It determines the Optimum Strata Boundaries (OSB) and Optimum Sample Sizes (OSS) for the study variable, $y$, using the best-fit frequency distribution of a survey variable (if data is available) or a hypothetical distribution (if data is not available). The method formulates the problem of determining the OSB as mathematical programming problem which is solved by using a dynamic programming technique. If a dataset of the population is available to the surveyor, the method estimates its best-fit distribution and determines the OSB and OSS under Neyman allocation directly. When the dataset is not available, stratification is made based on the assumption that the values of the study variable, $y$, are available as hypothetical realizations of proxy values of $y$ from recent surveys. Thus, it requires certain distributional assumptions about the study variable. At present, it handles stratification for the populations where the study variable follows a continuous distribution, namely, Pareto, Triangular, Right-triangular, Weibull, Gamma, Exponential, Uniform, Normal, Log-normal and Cauchy distributions. In this vignette, the two major functionalities in the package are applied to a number of real and simulated populations and to some  hypothetical populations. 
+**Description** This implements the stratification of univariate populations under stratified sampling designs using the method of Khan et al. (2002) <https://doi.org/10.1177/0008068320020518>, Khan et al. (2008) <https://www150.statcan.gc.ca/n1/pub/12-001-x/2008002/article/10761-eng.pdf> and Khan et al. (2015) <https://doi.org/10.1080/02664763.2015.1018674>. It determines the Optimum Strata Boundaries (OSB) and Optimum Sample Sizes (OSS) for the study variable, $y$, using the best-fit frequency distribution of a survey variable (if data is available) or a hypothetical distribution (if data is not available). The method formulates the problem of determining the OSB as mathematical programming problem which is solved by using a dynamic programming technique. Version 2.0 adds three further solvers (COBYLA, GLOBAL and EXACT), described in Section 7. If a dataset of the population is available to the surveyor, the method estimates its best-fit distribution and determines the OSB and OSS under Neyman allocation directly. When the dataset is not available, stratification is made based on the assumption that the values of the study variable, $y$, are available as hypothetical realizations of proxy values of $y$ from recent surveys. Thus, it requires certain distributional assumptions about the study variable. At present, it handles stratification for the populations where the study variable follows a continuous distribution, namely, Pareto, Triangular, Right-triangular, Weibull, Gamma, Exponential, Uniform, Normal, Log-normal and Cauchy distributions. In this vignette, the two major functionalities in the package are applied to a number of real and simulated populations and to some  hypothetical populations. 
 
-**License** GPL (>= 2)
+**License** GPL (>= 3)
 
 **LazyData** yes
 
-**NeedsCompilation** yes
+**NeedsCompilation** no
 
-**Depends** R (>= 4.4.2), MASS, fitdistrplus, actuar, triangle, mc2d, zipfR
+**Depends** R (>= 4.1.0)
+
+**Imports** stats, utils, graphics, grDevices, MASS, fitdistrplus, nloptr, actuar, mc2d
 
 **Repository** CRAN
 
-**Date/Publication** 2026-06-04 10:00:00
 
 # Using stratifyR through the interactive app {-}
 
-The quickest and easiest way to use **stratifyR** is through its built-in interactive application. The app gives you the complete workflow --- load your own data or pick a built-in dataset, compute the Optimum Strata Boundaries (OSB) and Optimum Sample Sizes (OSS) with the DP, COBYLA or GLOBAL solvers, compare design efficiencies, explore the boundaries visually, and download the results --- entirely through a point-and-click interface, with no R programming required. For most users, and especially for anyone who wants results quickly, this is the recommended way to work with the package.
+The quickest and easiest way to use **stratifyR** is through its built-in interactive application. The app gives you the complete workflow --- load your own data or pick a built-in dataset, compute the Optimum Strata Boundaries (OSB) and Optimum Sample Sizes (OSS) with the DP, COBYLA, GLOBAL or EXACT solvers, compare design efficiencies, explore the boundaries visually, and download the results --- entirely through a point-and-click interface, with no R programming required. For most users, and especially for anyone who wants results quickly, this is the recommended way to work with the package.
 
 To launch it, install the app's helper packages once (if you do not already have them) and then call `stratifyRApp()`:
 
@@ -294,7 +295,7 @@ This function computes the OSB, OSS, and other important quantities from univari
 \textbf{Usage}
 
         strata.data(data, h, n, cost=FALSE, ch=NULL,
-                    method=c("dp","cobyla","global"),
+                    method=c("dp","cobyla","global","exact"),
                     n_starts=20L, max_iter=2000L, tol=1e-9, verbose=FALSE)
 
 \textbf{Arguments}
@@ -304,13 +305,16 @@ This function computes the OSB, OSS, and other important quantities from univari
         n        - A numeric: fixed total sample size
         cost     - A logical: stratum cost. Default cost=FALSE.
         ch       - A numeric: denotes a vector of stratum costs. Default ch=NULL.
-        method   - A character: optimisation method. One of "dp" (default), "cobyla" or "global".
+        method   - A character: optimisation method. One of "dp" (default), "cobyla",
+                   "global" or "exact" (see Section 7).
         n_starts - An integer: number of random restarts for COBYLA. Default 20.
         max_iter - An integer: maximum function evaluations per COBYLA run. Default 2000.
         tol      - A numeric: convergence tolerance for COBYLA. Default 1e-9.
         verbose  - A logical: if TRUE, prints per-start diagnostics. Default FALSE.
         
 \textbf{Algorithm}
+
+The steps below describe the default DP solver. The other solvers replace steps 4 and 5 (see Section 7).
 
 \begin{enumerate}
 	\item **strata.data()** is invoked, which is like the main function which belongs to class "strata" which provides a sequence of codes that lead to the final results. The arguments that need to be specified during the invocation are: data, $h$ (number of strata) and $n$ (fixed total sample size). One can also provide cost and stratum costs if it involves a stratification problem with sampling cost. The function call is normally stored in an object, which is of class "strata".
@@ -333,19 +337,11 @@ head(quakes)
 mag <- quakes$mag
 length(mag)
 hist(mag) #to see the distribution
-# In development, source the 2.0-1 R files to override the installed 1.0-5 functions.
-# The library() call above is still needed to make package datasets available.
-# When the 2.0-1 package is properly installed, the if-block below is a no-op.
-local({
-  r_dir <- file.path("..", "R")
-  if (dir.exists(r_dir))
-    invisible(lapply(list.files(r_dir, pattern = "\\.R$", full.names = TRUE), source))
-})
 res <- strata.data(mag, h = 2, n=300) # a 2-strata solution
 summary(res)
 ```
 
-All calculations have been rounded off to 2 decimal places, hence, the individual stratum solutions provided in the tables may not always add up to the totals.
+The boundaries are computed at full precision and printed to six significant figures. Other quantities are rounded for display, so the individual stratum values in the tables may not add up exactly to the totals.
 
 ## The Function **strata.distr()**
 
@@ -405,84 +401,70 @@ res <- strata.distr(h=2, initval=40, dist=640, distr = "triangle",
 summary(res)
 ```
 
-# Alternative Optimisation Methods: COBYLA and GLOBAL
+# Alternative Optimisation Methods: COBYLA, GLOBAL and EXACT
 
 ## Motivation
 
-The Dynamic Programming solver described in Section 4 is the foundation of the original **stratifyR** package and guarantees finding the globally optimum stratum boundaries on a discrete grid of 1,000 candidate positions. While this is accurate and reliable, the exhaustive nature of the grid search means computation time grows with the number of strata $h$ and the resolution of the grid. For applications involving a large number of strata, or when fast approximate results are needed, for instance during exploratory analysis, simulation studies, or when stratifying a large number of variables simultaneously, it is advantageous to employ a faster optimisation method.
+The Dynamic Programming solver described in Section 4 is the foundation of **stratifyR**. It searches a grid of 1,000 candidate positions and is globally optimal on that grid for the distribution it is given. Two things limit it in practice. First, the search grows quickly with the number of strata $h$, so it can take a minute or more at $h = 5$ or $6$. Second, in `strata.data()` the DP optimises the *fitted* distribution, not the data themselves. When the fitted family describes the data well the two problems have almost the same solution, but when the fit is poor (for example in a very heavy tail) the DP boundaries can be noticeably worse for the actual population.
 
-**stratifyR** 2.0-1 introduces two alternative optimisation methods, accessible through the `method` argument in both `strata.data()` and `strata.distr()`:
+**stratifyR** 2.0 therefore offers four solvers through the `method` argument:
 
-- `method = "cobyla"`: a multi-start gradient-free local optimiser based on COBYLA
-- `method = "global"`: a two-phase global optimiser combining DIRECT-L with COBYLA refinement
+- `method = "dp"` (default): the original DP grid search on the fitted distribution;
+- `method = "cobyla"`: a fast multi-start derivative-free local optimiser;
+- `method = "global"`: a two-phase global search (DIRECT-L followed by BOBYQA refinement);
+- `method = "exact"` (`strata.data()` only): DP run directly on the sorted data, which returns the best possible stratification of the population.
 
-The original DP solver remains available as `method = "dp"` and is the **default** for both functions, ensuring full backward compatibility with version 1.0-5. The two new methods are intended as complements to DP, trading some accuracy for speed, and are most effective when applied to distribution-based stratification (`strata.distr`) where the objective function is smooth and continuous.
+DP remains the default, so code written for version 1.x gives the same kind of result as before.
 
 ## The COBYLA Method (`method = "cobyla"`)
 
-COBYLA (Constrained Optimisation By Linear Approximations) is a gradient-free, derivative-free nonlinear optimisation algorithm developed by @Powell1994. It minimises a nonlinear objective function subject to nonlinear inequality constraints by constructing successive linear approximations to both the objective and constraint functions. Unlike gradient-based methods, COBYLA does not require the objective function to be differentiable, making it in principle applicable to the stratification objective $\sum_{h=1}^{L} W_h S_h$.
+COBYLA (Constrained Optimisation BY Linear Approximations, @Powell1994) is a derivative-free method that minimises a function subject to inequality constraints by building linear models of the objective and constraints. **stratifyR** treats the $h-1$ interior boundaries as continuous variables. Adjacent boundaries must be at least one thousandth of the range apart, as in the problem formulation, and every stratum must hold at least two units.
 
-In **stratifyR**, COBYLA is applied with multiple random starting points (controlled by the `n_starts` argument, default 20) to reduce sensitivity to local minima. At each start, it searches for the $(h-1)$ interior boundary positions that minimise the objective, subject to constraints that keep boundaries ordered and prevent any stratum from collapsing to near-zero width. The best solution found across all starts is returned. If the solution is detected as degenerate (a stratum has collapsed), the solver automatically falls back to the DP method.
+The solver is run from several starting points (argument `n_starts`, default 20): equally spaced boundaries, equal-probability quantiles, and random restarts. From each start both COBYLA and BOBYQA are run and the better result is kept. The best result over all starts is returned. The random restarts do not change the user's random number stream.
 
-For `strata.distr`, COBYLA optimises the same analytical objective function evaluated by the DP solver, but treats the boundary positions as continuous variables rather than a discrete grid. Because this function is smooth and differentiable almost everywhere, COBYLA can navigate it effectively and typically converges to a solution close to the DP optimum in a fraction of the computation time.
+- For `strata.distr()`, COBYLA minimises the same analytical objective as the DP, but over continuous boundaries rather than a grid.
+- For `strata.data()`, COBYLA minimises the empirical objective $\sum_h W_h S_h$ computed from the data. This is exactly the quantity reported as `WhShTot`.
 
-For `strata.data`, COBYLA optimises an empirical objective computed directly from the raw data (stratum weights $W_h$ and standard deviations $S_h$ calculated by binning actual observations at each candidate boundary). This objective is piecewise constant, it only changes value when a boundary crosses an actual data point, which means continuous optimisers cannot reliably find the global minimum. For this reason, `method = "cobyla"` and `method = "global"` are most suitable for `strata.distr`, and `method = "dp"` is always recommended for `strata.data`.
+**Advantages:** fast, usually about a second even for six strata, so it is well suited to trying many values of $h$ or many variables. On data it usually lands on the same partition as `method = "exact"`, and you can check this in any particular case by running both.
 
-**Advantages of COBYLA:**
-
-- Substantially faster than DP, particularly for larger $h$, making it well-suited to exploratory work and simulation studies
-- No derivative information required; the algorithm is self-contained
-- Multiple random restarts reduce (but do not eliminate) sensitivity to local minima
-- Well-suited to distribution-based stratification where the analytical objective is smooth and continuous
-
-**Disadvantages of COBYLA:**
-
-- Not guaranteed to find the global optimum; the result may vary slightly between runs due to random starting points
-- For data-based stratification, cannot reliably match the DP result because the empirical Wh·Sh objective is piecewise constant
-- Degeneracy risk (collapsed strata) is handled automatically by a fallback to DP, but this removes the speed advantage in such cases
+**Limitations:** it is a local method, so a global optimum is not guaranteed. The `summary()` output reports a Cauchy-Schwarz optimality gap, KKT residuals and a convergence flag to help judge the solution.
 
 ## The GLOBAL Method (`method = "global"`)
 
-The `"global"` method employs a two-phase approach designed to improve upon single-phase COBYLA by systematically exploring the search space before local refinement.
+**Phase 1, DIRECT-L.** DIRECT-L (Dividing RECTangles, locally biased; @GablonskyKelley2001) splits the search box into smaller boxes and samples their centres, refining boxes that are either promising or still large and unexplored. It is deterministic and uses a budget of $\max(5000, 5000(h-1))$ evaluations.
 
-**Phase 1 — DIRECT-L global search.** The DIRECT-L algorithm (Dividing RECTangles, locally-biased variant; @GablonskyKelley2001) partitions the feasible search space into hyper-rectangles and evaluates the objective at the centre of each. It then subdivides rectangles that are either (a) small and promising (local exploitation), or (b) large and unexplored (global coverage), ensuring that the entire feasible region is investigated over time. Unlike COBYLA, DIRECT-L does not depend on random starting points and provides deterministic, reproducible exploration of the search space. The algorithm continues until the evaluation budget (governed by `max_iter`) is exhausted.
+**Phase 2, BOBYQA.** The best DIRECT-L point is polished with the BOBYQA local optimiser. If neither phase finds a feasible design (one with at least two units in every stratum), the solver falls back to multi-start COBYLA.
 
-**Phase 2 — COBYLA local refinement.** The best boundary position found by DIRECT-L in Phase 1 is used as the starting point for a COBYLA local refinement step, which polishes the solution to the required tolerance. This combination leverages the global coverage of DIRECT-L and the precise local convergence of COBYLA.
+**Advantages:** deterministic and reproducible; on smooth problems and moderate $h$ it usually reaches the same solution as COBYLA.
 
-For `strata.distr`, this two-phase approach is most effective: DIRECT-L identifies the basin of attraction containing the global minimum of the smooth analytical objective, and COBYLA precisely locates the minimum within that basin. The result typically agrees very closely with the DP optimum while running considerably faster for larger $h$.
+**Limitations:** when the data cover a very wide range, the fixed evaluation budget may not be enough to find narrow strata near the bottom of a skewed distribution, especially for larger $h$. If GLOBAL and COBYLA disagree, trust the lower `WhShTot`, or check with `method = "exact"`.
 
-As with COBYLA, if the resulting solution is detected as degenerate, an automatic fallback to DP is applied.
+## The EXACT Method (`method = "exact"`)
 
-**Advantages of the GLOBAL method:**
+When you have every value of the stratification variable, sorting them shows that a set of strata is just a way of cutting the sorted list into $h$ consecutive pieces. `method = "exact"` tries every such cut, using the dynamic programming idea of Section 4 so that this stays fast, and returns the cut with the smallest `WhShTot`. In other words, no other choice of boundaries for these data can give a smaller Neyman cost. Each stratum keeps at least two units, and units with the same value are always kept together.
 
-- Deterministic global search (Phase 1) avoids sensitivity to random starting points
-- More thorough coverage of the feasible space than multi-start COBYLA
-- Closest among the three methods to matching DP results for `strata.distr`
-- Well-suited to distribution-based stratification problems where the highest accuracy and speed are both desired
+In practice:
 
-**Disadvantages of the GLOBAL method:**
+- It needs the data, so it is available in `strata.data()` only. With `strata.distr()` there is nothing to sort, and the DP is already optimal for the assumed distribution.
+- It is quick for typical survey frames: a few thousand units take a second or two, and around 14,000 units with $h = 6$ take well under half a minute.
+- For very large frames (more than 20,000 distinct values) it searches 20,000 cut points spread evenly through the sorted data, which is close to exact. You can raise the limit, at the cost of time and memory, with `options(stratifyR.exact_max_cand = 50000)`. The element `exact_full` of the result tells you whether every cut point was searched.
+- The boundary it reports is the largest value in each stratum, so a unit equal to a boundary belongs to the lower stratum.
 
-- Slower than COBYLA (though still faster than DP for large $h$) due to DIRECT-L's evaluation budget
-- For data-based stratification, does not reliably match DP, for the same reasons as COBYLA
-- Degeneracy fallback to DP is applied automatically if the global search returns collapsed strata
+## Which method should I use?
 
-## Summary: When to Use Each Method
+A few questions settle it:
 
-The choice of method depends on whether raw data are available and what the priorities are in terms of speed versus accuracy.
-
-For **data-based stratification** (`strata.data`), the DP solver is the recommended choice in all situations. The empirical $W_h S_h$ objective is piecewise constant, it only changes when a boundary crosses a data point and is flat everywhere else, which prevents continuous optimisers from reliably navigating to the global minimum. The DP solver, being an exhaustive discrete grid search, is unaffected by this and always returns the globally optimal grid solution.
-
-For **distribution-based stratification** (`strata.distr`), all three methods optimise the same smooth, differentiable analytical objective, and the choice is a trade-off between speed and closeness to the DP optimum. COBYLA is the fastest option and is well-suited to exploratory or iterative work. GLOBAL is slower than COBYLA but typically agrees more closely with DP, making it preferable when the highest quality approximate result is needed without incurring the full cost of DP. DP remains the gold standard for final, publication-quality results.
-
-In practice, a sensible workflow for distribution-based problems is: use `method = "cobyla"` or `method = "global"` to quickly explore a range of $h$ values or parameter settings, then confirm the chosen configuration with `method = "dp"`.
+- *Do you have the data, or only an assumed distribution?* With only a distribution, use `strata.distr()` with the default `"dp"`, or `"cobyla"` if you want results instantly.
+- *Is the design for this very frame?* Then `"exact"` gives the best boundaries for it, usually in seconds.
+- *Will the boundaries be reused, for example in later rounds of the survey or on an updated frame?* The default `"dp"` places the boundaries for the fitted distribution rather than for every detail of one dataset, so they tend to change less from one frame to the next. It is worth comparing its `WhShTot` with `"exact"`: a small difference means the fitted family describes your data well.
+- *Are you exploring, for example many values of $h$ or several variables?* Use `"cobyla"` for speed, then confirm the final choice with `"exact"` or `"dp"`.
 
 ## Application: Comparing Methods for `strata.distr`
 
-The following example uses the Weibull distribution fitted to the Iron variable of the 'anaemia' data to compare the three methods for a 3-strata solution. For distribution-based stratification, all three methods should produce very similar OSB and WhShTot values because the analytical objective is smooth.
+The following example uses a Weibull distribution with the parameters fitted to the Iron variable of the 'anaemia' data, and compares the three solvers available in `strata.distr()` for a 3-strata solution.
 
 ```{r include=TRUE}
-# Iron variable from the anaemia data follows Weibull(shape=2.1446, scale=13.7907)
-# as established in Section 7.4. Using those known parameters directly here.
+# Weibull(shape = 2.1446, scale = 13.7907), as fitted to the Iron variable
 data(anaemia)
 Iron <- anaemia$Iron
 
@@ -494,64 +476,143 @@ summary(res_dp_d)
 ```
 
 ```{r include=TRUE}
-# COBYLA (fast approximation)
+# COBYLA
 res_cob_d <- strata.distr(h=3, initval=1.5, dist=33.2,
                distr="weibull", params=c(shape=2.1446, scale=13.7907),
                n=350, N=724, method="cobyla")
-summary(res_cob_d)
-```
 
-```{r include=TRUE}
-# GLOBAL (DIRECT-L + COBYLA)
+# GLOBAL (DIRECT-L + BOBYQA)
 res_glob_d <- strata.distr(h=3, initval=1.5, dist=33.2,
                 distr="weibull", params=c(shape=2.1446, scale=13.7907),
                 n=350, N=724, method="global")
-summary(res_glob_d)
+
+# Direct comparison of the three methods
+cat("DP     OSB:", round(res_dp_d$OSB, 3),   "  WhShTot:", res_dp_d$WhShTot, "\n")
+cat("COBYLA OSB:", round(res_cob_d$OSB, 3),  "  WhShTot:", res_cob_d$WhShTot, "\n")
+cat("GLOBAL OSB:", round(res_glob_d$OSB, 3), "  WhShTot:", res_glob_d$WhShTot, "\n")
 ```
 
-```{r include=TRUE}
-# Direct comparison of all three methods
-cat("DP     OSB:", round(res_dp_d$OSB, 2),   "  WhShTot:", round(res_dp_d$WhShTot, 4), "\n")
-cat("COBYLA OSB:", round(res_cob_d$OSB, 2),  "  WhShTot:", round(res_cob_d$WhShTot, 4), "\n")
-cat("GLOBAL OSB:", round(res_glob_d$OSB, 2), "  WhShTot:", round(res_glob_d$WhShTot, 4), "\n")
-```
-
-For distribution-based stratification, DP and GLOBAL typically agree very closely, since both locate the global minimum of the same smooth analytical objective — DP via exhaustive discrete grid search, and GLOBAL via deterministic DIRECT-L exploration followed by local refinement. COBYLA also agrees well for most distributions, but on objective landscapes with a pronounced local minimum — such as Weibull with certain shape/scale combinations — standalone COBYLA may converge to a suboptimal solution rather than the global minimum, because its linear-approximation local search is sensitive to the basin of attraction from which it starts. In such cases `method = "global"` is preferred over `method = "cobyla"` for distribution-based stratification.
+All three solvers minimise the same smooth objective here, and they agree to within the DP grid spacing. COBYLA and GLOBAL take a fraction of a second, while the DP takes much longer.
 
 ## Application: Comparing Methods for `strata.data`
 
-The following example uses the Iron variable directly to compare the three methods for a 2-strata data-based solution. This illustrates the fundamental limitation of continuous optimisers on empirical data.
+The next example uses the Iron data directly and compares all four solvers for a 2-strata solution.
 
 ```{r include=TRUE}
 data(anaemia)
 Iron <- anaemia$Iron
-Iron[Iron == min(Iron)] <- -0.001  # as per standard package convention
 
-# DP (recommended for strata.data)
-res_dp_s <- strata.data(Iron, h=2, n=350, method="dp")
-summary(res_dp_s)
-```
+res_dp_s    <- strata.data(Iron, h=2, n=350, method="dp")
+res_cob_s   <- strata.data(Iron, h=2, n=350, method="cobyla")
+res_glob_s  <- strata.data(Iron, h=2, n=350, method="global")
+res_exact_s <- strata.data(Iron, h=2, n=350, method="exact")
+summary(res_exact_s)
 
-```{r include=TRUE}
-# COBYLA
-res_cob_s <- strata.data(Iron, h=2, n=350, method="cobyla")
-summary(res_cob_s)
-```
-
-```{r include=TRUE}
-# GLOBAL
-res_glob_s <- strata.data(Iron, h=2, n=350, method="global")
-summary(res_glob_s)
-```
-
-```{r include=TRUE}
 # Direct comparison
-cat("DP     OSB:", round(res_dp_s$OSB, 2),   "  WhShTot:", round(res_dp_s$WhShTot, 4), "\n")
-cat("COBYLA OSB:", round(res_cob_s$OSB, 2),  "  WhShTot:", round(res_cob_s$WhShTot, 4), "\n")
-cat("GLOBAL OSB:", round(res_glob_s$OSB, 2), "  WhShTot:", round(res_glob_s$WhShTot, 4), "\n")
+cat("DP     OSB:", round(res_dp_s$OSB, 3),    "  WhShTot:", res_dp_s$WhShTot, "\n")
+cat("COBYLA OSB:", round(res_cob_s$OSB, 3),   "  WhShTot:", res_cob_s$WhShTot, "\n")
+cat("GLOBAL OSB:", round(res_glob_s$OSB, 3),  "  WhShTot:", res_glob_s$WhShTot, "\n")
+cat("EXACT  OSB:", round(res_exact_s$OSB, 3), "  WhShTot:", res_exact_s$WhShTot, "\n")
 ```
 
-The results show that for data-based stratification, COBYLA and GLOBAL may report a lower WhShTot than DP, with different OSB. This is not because DP is performing worse — it is because the two approaches are minimising different objectives. DP optimises a theoretical $W_h S_h$ computed analytically under the fitted distribution (via `data.root`), while COBYLA and GLOBAL directly minimise the empirical $W_h S_h$ computed from the actual data counts and standard deviations. The reported WhShTot is always empirical, so methods that directly minimise the empirical objective will naturally tend to report a lower value. However, the DP boundaries are theoretically justified: they minimise the expected Neyman cost under the best-fit distributional model, in the same way as `strata.distr`. The empirical boundaries found by COBYLA and GLOBAL are tailored to the specific sample and do not generalise to the underlying population in the same principled way. For this reason, `method = "dp"` remains the recommended and default choice for `strata.data`.
+COBYLA, GLOBAL and EXACT reach the same minimum cost. Their printed boundaries can differ slightly, because any boundary that lies between the same two consecutive data values gives the same strata; EXACT reports the largest value in the lower stratum. The DP cost is slightly higher, because the DP optimises the fitted Weibull model rather than the data. The difference here is small (about 0.25%), which shows that the Weibull describes these data well.
+
+# Working with the Results
+
+This section walks through the tools that help you turn a set of boundaries into a survey design: reading the output, choosing the number of strata, comparing the design with simpler ones, allowing for different costs per stratum, and plotting. The examples use household expenditure from the `hies` data ($N = 3{,}566$ households) with a sample of $n = 400$.
+
+```{r include=TRUE}
+data(hies)
+expend <- hies$Expenditure
+summary(expend)
+```
+
+## What is in a result
+
+Every call to `strata.data()` or `strata.distr()` returns an object of class `"strata"`. Printing it gives a short overview, and `summary()` gives the full table. The pieces you will use most often are:
+
+| Element | Meaning |
+|---|---|
+| `OSB` | the optimum strata boundaries; the last one is the top of the range |
+| `Nh`, `nh` | the number of population units and of sampled units in each stratum |
+| `Wh`, `Vh` | stratum weights and variances |
+| `WhShTot` | the Neyman cost $\sum_h W_h S_h$; smaller means a more precise design |
+| `method`, `distr` | the solver used and the fitted (or assumed) distribution |
+| `converged`, `optimality_gap`, `kkt_residuals` | checks on the solution, mainly for `"cobyla"` and `"global"` |
+
+```{r include=TRUE}
+res <- strata.data(expend, h = 4, n = 400, method = "exact")
+res
+res$OSB
+res$nh
+sum(res$nh)    # the stratum sample sizes always add up to n
+```
+
+A unit whose value equals a boundary belongs to the stratum below it. The sample sizes are whole numbers that add up to $n$ and never exceed the number of units in a stratum. If Neyman allocation asks for more units than a stratum has, that stratum is fully enumerated and the rest of the sample is shared among the other strata.
+
+## How many strata?
+
+Each extra stratum lowers the Neyman cost, but by less each time, and every stratum adds fieldwork and reporting effort. A quick way to choose $h$ is to compute `WhShTot` for a range of values with the fast solver and look for the point where the gains level off.
+
+```{r include=TRUE, fig.width=5, fig.height=3.5}
+h_values <- 2:7
+cost_h <- sapply(h_values, function(h)
+  strata.data(expend, h = h, n = 400, method = "cobyla")$WhShTot)
+round(cost_h, 1)
+round(100 * (1 - cost_h[-1] / cost_h[-length(cost_h)]), 1)   # % drop at each step
+plot(h_values, cost_h, type = "b", pch = 19,
+     xlab = "Number of strata (h)", ylab = "WhShTot",
+     main = "Neyman cost by number of strata")
+```
+
+For these data the cost falls by about 31% from two to three strata and by about 24% from three to four, after which each extra stratum gains less. Four strata is a sensible choice here. The **Strata count** tab of the app does the same calculation and marks the elbow for you.
+
+## Comparing with simpler designs
+
+`compare_designs()` takes a result and compares, for the same sample size, the variance of the estimated mean under simple random sampling (SRS), stratified sampling with proportional allocation, and stratified sampling with Neyman allocation.
+
+```{r include=TRUE}
+compare_designs(res)
+```
+
+The design effect (DEFF) is the variance relative to SRS. The *equivalent SRS sample size* is how many households a simple random sample would need to match the precision of the stratified design; the difference is the saving that stratification buys.
+
+## Different costs per stratum
+
+If some strata are more expensive to survey, for example because large households take longer to interview, give the cost per sampled unit in each stratum with `cost = TRUE` and `ch`. The solvers then minimise $\sum_h W_h S_h \sqrt{c_h}$, so both the boundaries and the allocation change: cheaper strata receive more of the sample.
+
+```{r include=TRUE}
+ch <- c(1, 1, 2, 4)    # relative cost of one interview in each stratum
+res_cost <- strata.data(expend, h = 4, n = 400, method = "exact",
+                        cost = TRUE, ch = ch)
+rbind(equal_costs = res$nh, with_costs = res_cost$nh)
+c(equal_costs = sum(res$nh * ch), with_costs = sum(res_cost$nh * ch))   # field cost
+```
+
+With the same 400 interviews, the cost-aware design moves the sample towards the cheaper lower strata and needs noticeably less field effort. Its variance is a little higher than the Neyman design's, because Neyman allocation is the most precise choice for a fixed $n$; the cost-aware design is the better choice when the budget, rather than the sample size, is fixed.
+
+## Plots
+
+`plot()` shows the population with the boundaries marked. The default `type = "2d"` is a histogram with the fitted density overlaid. With the **plotly** package installed, `type = "3d"` and `type = "interactive"` give interactive views that you can rotate and explore in the RStudio viewer or a browser.
+
+```{r include=TRUE, fig.width=6, fig.height=4}
+plot(res, data = expend)
+```
+
+```{r eval=FALSE}
+plot(res, type = "3d")            # needs plotly
+plot(res, type = "interactive")   # needs plotly
+```
+
+## Large frames and the exact solver
+
+For frames with more than 20,000 distinct values, `method = "exact"` searches a large, evenly spread set of cut points, and `res$exact_full` is `FALSE`. If you need the full search, raise the limit before the call, keeping in mind that time and memory grow quickly with it:
+
+```{r eval=FALSE}
+options(stratifyR.exact_max_cand = 50000)
+res_big <- strata.data(big_frame, h = 5, n = 2000, method = "exact")
+res_big$exact_full
+```
 
 # Application to Numerous Survey Populations
 
@@ -683,7 +744,7 @@ Substituting the values of $a$, $b$, $c$, $y_{0}$ and $d$, the OSW ($l_{h}^{*}$)
 
 ### A Numerical Example for Triangular Distribution
 
-Data on Mathematics marks of first year students in a University in Fiji, with a size of $N=354$ called 'math' data is used to demonstrate the application of the **stratifyR** package on a Triangular population. In this example, the variable `final_marks' is used - it exhibits a 3-parameter Triangular distribution. The minimum and maximum values in the 'math' data are $[y_{0}, y_{L}] = [7, 97]$, which implies that $d=90$. Fitting a Triangular distribution by fixing $\min$ and $\max$ to the sample bounds and estimating only the mode by MLE gives the parameters: $min = 7$, $max = 97$ and $mode \approx 54$.
+Data on Mathematics marks of first year students in a University in Fiji, with a size of $N=487$ called 'math' data is used to demonstrate the application of the **stratifyR** package on a Triangular population. In this example, the variable `final_marks' is used - it exhibits a 3-parameter Triangular distribution. The minimum and maximum values in the 'math' data are $[y_{0}, y_{L}] = [7, 97]$, which implies that $d=90$. Fitting a Triangular distribution by fixing $\min$ and $\max$ just outside the sample bounds and estimating only the mode by maximum likelihood gives $mode \approx 54$. (The triangular density is zero at its end points, so the likelihood cannot be evaluated if $\min$ and $\max$ equal the smallest and largest marks.) We therefore use $min = 7$, $max = 97$ and $mode = 54$.
 
 To construct the OSB ($h = 2$) for the `final_marks' data with a fixed total sample size of $150$, we use the following code:
 
@@ -703,14 +764,16 @@ final_marks <- math$final_marks
 a <- min(final_marks); b <- max(final_marks)
 a; b; d <- b - a; d
 
-# Estimate parameters: fix min and max to sample bounds, estimate only mode by MLE
-br <- pretty(final_marks, n = 20)
-hh <- hist(final_marks, breaks = br, plot = FALSE)
-m0 <- hh$mids[which.max(hh$counts)]          # histogram mode proxy
-fit <- fitdist(final_marks, distr = "triang", method = "mle",
-               start   = list(mode = m0),
-               fix.arg = list(min = a, max = b))
-fit
+# Estimate the mode by maximum likelihood, with min and max fixed just outside
+# the sample range (the density is zero at min and max, so they cannot equal
+# sample values). The likelihood of a triangular mode is maximised at one of
+# the data values, so we simply evaluate it at each distinct value. This is
+# exact and gives the same answer on every platform.
+lo <- a - 0.01 * d; hi <- b + 0.01 * d
+loglik <- function(m) sum(log(mc2d::dtriang(final_marks, min = lo, mode = m, max = hi)))
+cand <- sort(unique(final_marks))
+mode_hat <- cand[which.max(sapply(cand, loglik))]
+mode_hat
 
 # 2-strata solution
 res <- strata.distr(h=2, initval=7, dist=90, distr = "triangle",
@@ -732,7 +795,7 @@ f(y) =
 
 where $a$ is the location parameter and $b$ is the scale parameter of the distribution.  
 
-Note that the Right-Triangular distribution is a special case of the Triangular distribution discussed in Section 7.2 where the parameters $a=c$, i.e., minimium value is equal to the mode. Thus, the density function (22) is a two-parameter distribution.
+Note that the Right-Triangular distribution is a special case of the Triangular distribution discussed in Section 9.2 where the parameters $a=c$, i.e., minimium value is equal to the mode. Thus, the density function (22) is a two-parameter distribution.
 
 ### DP Solution for Right-Triangular Distribution
 
@@ -888,7 +951,7 @@ Q(r,y)=\dfrac{1}{\Gamma(r)}\int_{y}^{\infty}t^{r-1}e^{-t}\,dt,\;\;\;\;\;\;r,y>0;
 P(r,y)=\dfrac{1}{\Gamma(r)}\int_{0}^{y}t^{r-1}e^{-t}\,dt,\;\;\;\;\;\;r,y>0;\;\;\Gamma(r)\neq0,\label{226} \tag{33}
 \end{eqnarray}
 
-where $Q(r,y)$ denotes the Upper Regularized Incomplete Gamma function while $P(r,y)$ denotes the Lower Regularized Incomplete Gamma function (@abramowitz1972handbook, Chapter 6). Note that $Q(r,y)=1-P(r,y)$. In R, $Q(r,y)$ is evaluated as \texttt{pgamma(y, shape=r, lower.tail=FALSE)}, which is the regularized form. It is important to note that $Q(r,y)$ is distinct from the unregularized upper incomplete gamma function $\Gamma(r,y)$ (equation 30); they are related by $Q(r,y)=\Gamma(r,y)/\Gamma(r)$. The DP recurrence relations for both Weibull (equations 26--27) and Gamma (equations 34--35) use the regularized $Q(r,y)$, and **stratifyR** 2.0-1 implements these correctly using \texttt{pgamma}.
+where $Q(r,y)$ denotes the Upper Regularized Incomplete Gamma function while $P(r,y)$ denotes the Lower Regularized Incomplete Gamma function (@abramowitz1972handbook, Chapter 6). Note that $Q(r,y)=1-P(r,y)$. In R, $Q(r,y)$ is evaluated as \texttt{pgamma(y, shape=r, lower.tail=FALSE)}, which is the regularized form. It is important to note that $Q(r,y)$ is distinct from the unregularized upper incomplete gamma function $\Gamma(r,y)$ (equation 30); they are related by $Q(r,y)=\Gamma(r,y)/\Gamma(r)$. The DP recurrence relations for both Weibull (equations 26--27) and Gamma (equations 34--35) use the regularized $Q(r,y)$, and **stratifyR** 2.0 implements these correctly using \texttt{pgamma}.
  
 ### DP Solution for Gamma Distribution
 
@@ -1261,7 +1324,7 @@ res <- strata.data(black, h = 2, n=500)
 summary(res)
 ```
 
-Please note that for Cauchy distributions, one might get the error messages "simpleError in optim()...". You can ignore this error message which simply indicates that when the data is fitted to all ten distributions, it gives errors while computing the parameters of those distributions which are not defined in the negative region. This happens with Cauchy distribution because it is defined on both positive and negative regions.
+When the data include negative values, as they can for a Cauchy variable, the families that are defined only for positive values cannot be fitted. The package skips them quietly and chooses among the remaining families by AIC.
 
 Similarly, in order to find the OSB and other quantities, we can apply the **strata.distr()** function to a Cauchy population. Based on the assumption from past knowledge that the population follows Cauchy distribution with the given attributes such as the initial value, distance, parameters, etc., we can execute the following command to obtain the results:
 
@@ -1275,55 +1338,64 @@ summary(res)
 
 # Summary of Method Comparison Across All Supported Distributions
 
-The three optimisation methods available in **stratifyR** — Dynamic Programming (`"dp"`), COBYLA (`"cobyla"`), and DIRECT-L + COBYLA (`"global"`) — produce the same optimal stratum boundaries and Neyman cost ($\sum W_h S_h$) in many cases, but can diverge meaningfully depending on the shape of the underlying distribution. To illustrate this, we applied all three methods to `strata.data()` with $h = 2$ (or $h = 3$ for Weibull, as in the earlier section) across all ten distributions supported by the package. The results are summarised in Table 1 below.
+To compare the four solvers on the examples of Section 9, we ran `strata.data()` with $h = 3$ on the data used in each distribution section. Table 1 shows the Neyman cost $\sum W_h S_h$ (`WhShTot`) for each solver, and the gap of the DP cost above the exact optimum. The values were computed with **stratifyR** 2.0-2; the code to reproduce them is given after the table.
 
 ```{r echo=FALSE, message=FALSE}
 comparison_table <- data.frame(
-  Distribution = c("Pareto", "Exponential", "Gamma", "Log-Normal",
-                   "Uniform", "Normal", "Right-Triangular",
-                   "Weibull", "Triangular", "Cauchy"),
-  `Example Data` = c(
-    "Simulated (N=5000, shape=5, scale=8)",
-    "Simulated (N=5000, rate=1.36)",
-    "Simulated (N=500, shape=3, rate=0.7)",
-    "HIES Expenditure (N=3566)",
-    "Simulated (N=5000, min=2, max=15)",
-    "Simulated (N=5000, mean=6, sd=2.1)",
-    "Simulated (N=1000, a=2, b=8)",
-    "Anaemia Iron (N=724, h=3)",
-    "Math final marks (N=354)",
-    "Simulated (N=3000, location=15, scale=4)"
-  ),
-  `DP` = c(0.938, 0.399, 1.347, 6754.79, 1.880, 1.006, 0.727, 2.461, 10.741, 8.442),
-  `COBYLA` = c(1.204, 0.425, 1.405, 6801.42, 1.880, 1.008, 0.727, 2.433, 10.715, 8.468),
-  `GLOBAL` = c(1.204, 0.425, 1.405, 6801.42, 1.880, 1.008, 0.727, 2.433, 10.715, 8.468),
-  `Outcome` = c(
-    "DP clearly better",
-    "DP clearly better",
-    "DP clearly better",
-    "DP clearly better",
-    "All agree",
-    "All agree",
-    "All agree",
-    "COBYLA/GLOBAL marginally better",
-    "COBYLA/GLOBAL marginally better",
-    "DP marginally better"
-  ),
+  Section = c("Pareto", "Triangular", "Right-triangular", "Weibull", "Gamma",
+              "Exponential", "Uniform", "Normal", "Log-normal", "Cauchy"),
+  Data = c("Simulated", "math final marks", "Simulated", "anaemia Iron",
+           "anaemia Folate", "Simulated", "Simulated", "Simulated",
+           "hies Expenditure", "Boston black"),
+  N = c(5000, 487, 1000, 724, 724, 5000, 5000, 5000, 3566, 506),
+  `AIC family` = c("weibull", "weibull", "lnorm", "norm", "norm",
+                   "exp", "unif", "norm", "lnorm", "cauchy"),
+  DP     = c(0.9382, 7.1172, 0.4959, 2.4638, 2.9357, 0.27360, 1.2471, 0.71698, 4678.5, 20.672),
+  COBYLA = c(0.9271, 7.0916, 0.4885, 2.4434, 2.8985, 0.27341, 1.2470, 0.71685, 4598.9, 14.921),
+  GLOBAL = c(0.9271, 7.0916, 0.4885, 2.4434, 2.8985, 0.27341, 1.2470, 0.71685, 4598.9, 14.921),
+  EXACT  = c(0.9271, 7.0916, 0.4885, 2.4434, 2.8985, 0.27341, 1.2470, 0.71685, 4598.9, 14.921),
+  `DP gap (%)` = c(1.19, 0.36, 1.50, 0.84, 1.28, 0.07, 0.01, 0.02, 1.73, 38.5),
   check.names = FALSE
 )
-
-knitr::kable(comparison_table, digits = 3, align = "lllllll",
-             caption = "Table 1: Comparison of DP, COBYLA and GLOBAL methods across all ten distributions supported by stratifyR. WhShTot values shown for h=2 (h=3 for Weibull). Lower WhShTot indicates a more efficient stratification.")
+knitr::kable(comparison_table, align = "llrlrrrrr",
+             caption = "Table 1: Neyman cost (WhShTot) of the four solvers with h = 3 on the examples of Section 9. 'AIC family' is the distribution chosen by AIC, which the DP optimises. 'DP gap' is the DP cost above the exact optimum. Lower WhShTot means a more efficient design.")
 ```
 
-Three distinct patterns emerge from Table 1. For heavy-tailed, right-skewed distributions — Pareto, Exponential, Gamma and Log-Normal — DP substantially outperforms COBYLA and GLOBAL. The reason is structural: for these distributions the theoretically optimal stratum boundary lies very close to the data minimum, in a region of rapidly changing density. COBYLA's linear-approximation local search consistently misses this low-boundary optimum, settling instead in a nearby but suboptimal basin. DP avoids this problem entirely because it evaluates the objective on an exhaustive discrete grid and cannot be trapped by a local minimum. The GLOBAL method (DIRECT-L followed by COBYLA refinement) also misses this region in practice, because DIRECT-L's uniform partition of the search space does not resolve the narrow optimal zone near the lower boundary finely enough before handing off to COBYLA.
+Three points stand out.
 
-For symmetric or bounded distributions — Uniform, Normal and Right-Triangular — all three methods converge to the same solution. The objective landscape for these distributions is smooth and unimodal, so COBYLA's local search finds the global minimum reliably.
+1. **COBYLA, GLOBAL and EXACT agree everywhere.** On all ten examples, the two fast solvers found the exact optimum. They took between 0.2 and 2.5 seconds, and EXACT took between 0.03 and 1.3 seconds.
 
-For the Weibull and Triangular distributions, COBYLA and GLOBAL report a marginally lower empirical $\sum W_h S_h$ than DP. As explained in Section 6.2, this does not mean DP is inferior: the two sets of methods are minimising different objectives. DP minimises the theoretical $W_h S_h$ derived analytically from the fitted distributional model (via `data.root`), whereas COBYLA and GLOBAL directly minimise the empirical $W_h S_h$ from the raw data. The reported WhShTot is always the empirical value, so methods optimising that quantity directly will tend to report a slightly lower number. For these distributions the optimal boundary falls in an interior region of the data range — accessible to COBYLA's empirical search — so the two approaches reach similar, though not identical, solutions. The DP boundaries remain theoretically justified and generalisable to the underlying population.
+2. **DP is within 2% of the optimum when the fitted model is reasonable.** The gap is below 0.1% for the exponential, uniform and normal data, where the chosen family matches the data well, and between 0.4% and 1.7% for the skewed examples. The DP took 20 to 50 seconds per run at $h = 3$.
 
-For the Cauchy distribution, DP is marginally superior. The Cauchy's extremely heavy tails and undefined mean make empirical optimisation unstable, whereas DP's grid-based search over the fitted Cauchy recurrence relations is unaffected by the distributional anomalies.
+3. **The DP depends on the fitted model.** For the Boston `black` variable, the AIC chooses the Cauchy, but the data are strongly skewed to the left and the fitted Cauchy describes them poorly. The DP boundaries, which are optimal for that model, cost 38.5% more than the exact optimum for the actual data. Fitting a distribution is what makes `strata.distr()` possible when no data are available, but when the data are at hand, it is worth checking the DP result against `method = "exact"`.
 
-Overall, **DP is the recommended and default method for `strata.data()`**, particularly when the survey variable is right-skewed or heavy-tailed. COBYLA and GLOBAL are provided as fast alternatives and can be useful for preliminary exploration or large datasets where computation time is a concern, but they should be used with caution for distributions in the first group above.
+Note that the family chosen by AIC can differ from the section name. For example, the Iron and Folate data (with the minimum replaced as in Section 9) are fitted best by the normal. The family chosen, and therefore the DP result, can also differ slightly between platforms when a maximum-likelihood fit is close to failing. The COBYLA, GLOBAL and EXACT results do not depend on the fit.
+
+In summary, **`"exact"` gives the best design for a given population, `"cobyla"` gives the same answer in almost all cases and is the fastest, and `"dp"` remains the default** because it optimises a smooth fitted model and is the method of the original package.
+
+The table can be reproduced with the following code (it takes a few minutes because of the DP runs):
+
+```{r eval=FALSE}
+library(MASS); library(triangle); library(actuar)
+pops <- list()
+set.seed(8235411); pops$Pareto <- actuar::rpareto(5000, shape=5, scale=8)
+data(math); pops$Triangular <- math$final_marks
+set.seed(12546); pops$`Right-triangular` <- rtriangle(n=1000, a=2, b=8, c=2)
+data(anaemia)
+x <- anaemia$Iron;   x[x == min(x)] <- -0.001; pops$Weibull <- x
+x <- anaemia$Folate; x[x == min(x)] <- -0.001; pops$Gamma   <- x
+set.seed(28951); pops$Exponential <- rexp(5000, rate=1.36)
+set.seed(15669); pops$Uniform <- runif(5000, min=2, max=15)
+set.seed(89821); pops$Normal <- rnorm(5000, mean=16, sd=1.65)
+data(hies); pops$`Log-normal` <- hies$Expenditure
+pops$Cauchy <- Boston$black
+
+tab <- t(sapply(pops, function(d) {
+  n <- min(500, floor(length(d) / 2))
+  sapply(c("dp", "cobyla", "global", "exact"),
+         function(m) strata.data(d, h=3, n=n, method=m)$WhShTot)
+}))
+tab
+```
 
 # References

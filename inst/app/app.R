@@ -4,7 +4,7 @@
 #
 # Required packages:
 #   install.packages(c("shiny", "bslib", "DT", "plotly", "readxl"))
-#   install.packages("~/Desktop/strataVerse/stratifyR 2.0/stratifyR 2.0-1",
+#   install.packages("~/Desktop/strataVerse/stratifyR 2.0/stratifyR 2.0-2",
 #                    repos = NULL, type = "source")
 # ==============================================================================
 
@@ -12,6 +12,12 @@ library(shiny)
 library(bslib)
 library(DT)
 library(stratifyR)
+
+# Version shown in the header badge, read from the installed package
+# (e.g. "2.0-2"), so it always matches the package that is running.
+.app_version <- tryCatch(utils::packageDescription("stratifyR")$Version,
+                         error = function(e) "2.0-2")
+if (is.null(.app_version) || is.na(.app_version)) .app_version <- "2.0-2"
 
 has_plotly  <- requireNamespace("plotly",  quietly = TRUE)
 has_readxl  <- requireNamespace("readxl",  quietly = TRUE)
@@ -918,36 +924,18 @@ ui <- page_sidebar(
   theme        = app_theme,
   window_title = "stratifyR 2.0",
   tags$head(
+    tags$link(rel = "icon", type = "image/png", href = "favicon.png"),
     tags$style(HTML(app_css)),
     withMathJax()
   ),
 
   title = div(class = "brand-logo-wrap",
-    # Logo: circle with density curve + 3 strata — clean, minimal, professional
-    HTML('
-      <svg width="48" height="48" viewBox="0 0 130 130"
-           xmlns="http://www.w3.org/2000/svg"
-           style="flex-shrink:0; filter:drop-shadow(0 2px 10px rgba(0,0,0,0.50));">
-        <defs>
-          <clipPath id="lgClip">
-            <polygon points="65,9 113.5,37 113.5,93 65,121 16.5,93 16.5,37"/>
-          </clipPath>
-        </defs>
-        <polygon points="65,3 118.7,34 118.7,96 65,127 11.3,96 11.3,34" fill="#1A2D50"/>
-        <g clip-path="url(#lgClip)">
-          <rect x="7"  y="7" width="34" height="116" fill="#E9A826" fill-opacity="0.28"/>
-          <rect x="41" y="7" width="42" height="116" fill="#2DD4BF" fill-opacity="0.22"/>
-          <rect x="83" y="7" width="40" height="116" fill="#818CF8" fill-opacity="0.28"/>
-          <line x1="41" y1="7" x2="41" y2="123" stroke="rgba(255,255,255,0.50)" stroke-width="1.2" stroke-dasharray="3.5,3"/>
-          <line x1="83" y1="7" x2="83" y2="123" stroke="rgba(255,255,255,0.50)" stroke-width="1.2" stroke-dasharray="3.5,3"/>
-          <path d="M 8,96 C 12,96 16,88 22,74 C 27,62 32,44 39,31 C 44,22 49,19 55,25 C 62,34 68,52 76,66 C 83,78 90,87 98,92 C 106,95 114,96 122,96"
-                fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.8" stroke-linecap="round"/>
-        </g>
-        <polygon points="65,5 117,35 117,95 65,125 13,95 13,35" fill="none" stroke="#E9A826" stroke-width="2.6"/>
-      </svg>
-    '),
+    # Logo: the stratifyR hex sticker (www/stratifyR_logo.png)
+    tags$img(src = "stratifyR_logo.png", height = "46px", alt = "stratifyR logo",
+             style = "flex-shrink:0; filter:drop-shadow(0 2px 8px rgba(0,0,0,0.45));"),
     div(class = "brand-text-wrap",
-      HTML('<div class="brand-name">stratifyR<span class="brand-badge">2.0-1</span></div>'),
+      HTML(paste0('<div class="brand-name">stratifyR<span class="brand-badge">',
+                  .app_version, '</span></div>')),
       div(class = "brand-sub", "Optimal Survey Stratification")
     )
   ),
@@ -1015,16 +1003,18 @@ ui <- page_sidebar(
         ),
 
         selectInput("solver", "Solver",
-          choices  = c("DP — Dynamic Programming (default)"  = "dp",
-                       "COBYLA — Fast Multi-start"           = "cobyla",
-                       "GLOBAL — DIRECT-L + COBYLA (best for skewed)" = "global"),
+          choices  = c("DP — Dynamic Programming on the fitted model (default)" = "dp",
+                       "EXACT — Dynamic Programming on the data"  = "exact",
+                       "COBYLA — Fast multi-start search"         = "cobyla",
+                       "GLOBAL — DIRECT-L + local refinement"     = "global"),
           selected = "dp",
           selectize = FALSE),
 
         div(style = "font-size:0.75rem; color:#94A3B8; margin-top:2px;",
-          tags$strong("DP"), " — exact global optimum (recommended for empirical data). ",
-          tags$strong("COBYLA"), " — fast gradient-free search. ",
-          tags$strong("GLOBAL"), " — DIRECT-L global phase + COBYLA refinement; best for right-skewed or heavy-tailed distributions.")
+          tags$strong("DP"), " — globally optimal on a fine grid for the fitted distribution. ",
+          tags$strong("EXACT"), " — globally optimal for the data themselves (data sources only). ",
+          tags$strong("COBYLA"), " — fast search on the data, usually within a fraction of a percent of EXACT. ",
+          tags$strong("GLOBAL"), " — DIRECT-L global search followed by local refinement; a second opinion for small H.")
       ),
 
       # ── 3. Plot Options ──────────────────────────────────────────────────────
@@ -1360,7 +1350,8 @@ server <- function(input, output, session) {
     prog_msg    <- switch(method_used,
       "dp"     = "▶ DP solver running…",
       "cobyla" = "▶ COBYLA optimising…",
-      "global" = "▶ GLOBAL (DIRECT-L + COBYLA) running…")
+      "global" = "▶ GLOBAL (DIRECT-L + local refinement) running…",
+      "exact"  = "▶ EXACT data DP running…")
 
     shiny::withProgress(message = prog_msg, value = 0, {
 
@@ -1385,7 +1376,8 @@ server <- function(input, output, session) {
             detail = switch(method_used,
               "dp"     = "Running DP algorithm (O(h·N²))…",
               "cobyla" = "Running COBYLA (20 random starts)…",
-              "global" = "Running DIRECT-L global search + COBYLA refinement…"))
+              "global" = "Running DIRECT-L global search + local refinement…",
+              "exact"  = "Running Dynamic Programming on the data…"))
 
           res <- strata.distr(
             h       = h,
@@ -1395,7 +1387,8 @@ server <- function(input, output, session) {
             params  = params,
             n       = n_samp,
             N       = as.integer(input$distr_N),
-            method  = method
+            # EXACT needs data; with an assumed distribution the DP solver is exact for it
+            method  = if (identical(method, "exact")) "dp" else method
           )
 
         } else {
@@ -1408,7 +1401,8 @@ server <- function(input, output, session) {
             detail = switch(method_used,
               "dp"     = "Running DP algorithm (O(h·N²))…",
               "cobyla" = "Running COBYLA (20 random starts)…",
-              "global" = "Running DIRECT-L global search + COBYLA refinement…"))
+              "global" = "Running DIRECT-L global search + local refinement…",
+              "exact"  = "Running Dynamic Programming on the data…"))
 
           res <- strata.data(
             data   = y,
@@ -1443,7 +1437,8 @@ server <- function(input, output, session) {
           switch(input$solver,
             "dp"     = "DP solver: O(h·N²) — larger strata counts take longer",
             "cobyla" = "COBYLA: gradient-free boundary search (20 starts)…",
-            "global" = "GLOBAL: DIRECT-L phase 1 (500 evals) + COBYLA refinement…"))
+            "global" = "GLOBAL: DIRECT-L global phase + local refinement…",
+            "exact"  = "EXACT: Dynamic Programming over every cut point in the data…"))
       )
     } else if (!is.null(run_err())) {
       div(class = "status-pill s-error", icon("circle-xmark"), run_err())
@@ -1628,9 +1623,9 @@ server <- function(input, output, session) {
             tags$span(class = "step-num", "② Settings"),
             "Set the number of strata H, sample size n, and solver.",
             " DP gives the exact global optimum.",
-            " COBYLA is a fast gradient-free alternative.",
-            " GLOBAL (DIRECT-L + COBYLA) is the best choice for right-skewed",
-            " or heavy-tailed distributions when using a parametric pathway."),
+            " DP is optimal on a fine grid for the fitted distribution;",
+            " EXACT is optimal for the data themselves; COBYLA is a fast search",
+            " that usually lands within a fraction of a percent of EXACT."),
           div(class = "intro-step",
             tags$span(class = "step-num", "③ Run"),
             "Click ", tags$strong("Run Stratification"),
@@ -1830,10 +1825,8 @@ server <- function(input, output, session) {
             pop   <- res0$data_internal
             N_arg <- if (!is.null(res0$N) && res0$N > 0 && res0$N != length(pop))
                        res0$N else NULL
-            r <- if (is.null(N_arg))
-                   strata.data(data = pop, h = h_i, n = n_val, method = "cobyla")
-                 else
-                   strata.data(data = pop, h = h_i, n = n_val, N = N_arg, method = "cobyla")
+            # strata.data() takes N from length(data); it has no N argument
+            r <- strata.data(data = pop, h = h_i, n = n_val, method = "cobyla")
           } else {
             pnames   <- distr_params[[input$distr_name]]$names
             defs     <- distr_params[[input$distr_name]]$defaults
@@ -2238,9 +2231,10 @@ server <- function(input, output, session) {
           div(class = "intro-body",
             tags$p(tags$strong("DP / COBYLA / GLOBAL — stratifyR:"),
               " Globally optimal boundaries via Dynamic Programming, COBYLA, or GLOBAL (Khan et al. 2008).",
-              " DP guarantees the global optimum on the empirical grid;",
+              " DP guarantees the global optimum on a grid for the fitted distribution;",
               " COBYLA is a fast gradient-free alternative;",
-              " GLOBAL (DIRECT-L + COBYLA) provides the best accuracy for skewed distributions.",
+              " EXACT runs Dynamic Programming on the data and gives the true optimum for the data;",
+              " GLOBAL (DIRECT-L + local refinement) is a second opinion for small H.",
               " This is the reference — all other methods are compared against it."),
             tags$p(tags$strong("Geometric (Gunning & Horgan 2004):"),
               " Places boundaries at geometrically spaced values:",
@@ -3128,10 +3122,8 @@ server <- function(input, output, session) {
           if (is_heavy_tailed)
             tags$p(style = "margin:0 0 0.3rem 0;",
               tags$strong("Heavy-tailed distribution detected (", fitted_distr, ")."),
-              " COBYLA is documented to perform poorly on Cauchy and Pareto data —",
-              " it converges to poor local optima and can produce degenerate boundary solutions.",
-              " The H-Selector curve may be unreliable for these distributions.",
-              " For more accurate results, use DP in the main run and treat this curve as indicative only.")
+              " Very heavy tails make every solver more sensitive.",
+              " Treat this curve as a guide and confirm the chosen H with the EXACT solver in the main run.")
           else NULL,
           if (n_degen > 0)
             tags$p(style = "margin:0 0 0.3rem 0;",
@@ -3148,8 +3140,7 @@ server <- function(input, output, session) {
               sprintf(" (H = %s).", paste(df$H[df$stagnant], collapse = ", ")),
               " COBYLA returned essentially the same solution for these consecutive H values",
               " (< 0.05% improvement), shown as grey ◆ on the plot.",
-              " This is a known COBYLA limitation for heavy-tailed distributions —",
-              " the solver gets stuck in the same local optimum regardless of how many strata are requested.")
+              " Adding a stratum gave almost no gain here, which usually means the extra strata are not needed.")
           else NULL
         )
       )
@@ -4412,9 +4403,9 @@ server <- function(input, output, session) {
         sprintf(",\n  N      = %dL", as.integer(res$N)) else ""
 
       data_call <- sprintf(
-        "\n# Load built-in data\ndata(\"%s\", package = \"stratifyR\")\ny <- %s$%s\n\nres <- strata.data(\n  data   = y,\n  h      = %dL,\n  n      = %dL%s,\n  method = \"%s\"\n)",
+        "\n# Load built-in data\ndata(\"%s\", package = \"stratifyR\")\ny <- %s$%s\n\nres <- strata.data(\n  data   = y,\n  h      = %dL,\n  n      = %dL,\n  method = \"%s\"\n)",
         ds_name, ds_name, col_name,
-        h, n, N_arg, mtd)
+        h, n, mtd)
 
     } else {
       # ---- uploaded file pathway -----------------------------------------------
@@ -4424,8 +4415,8 @@ server <- function(input, output, session) {
         sprintf(",\n  N      = %dL", as.integer(input$pop_N)) else ""
 
       data_call <- sprintf(
-        "\n# Replace the path with your actual file\ny_df <- read.csv(\"your_data.csv\", stringsAsFactors = FALSE)\ny    <- y_df$%s\n\nres <- strata.data(\n  data   = y,\n  h      = %dL,\n  n      = %dL%s,\n  method = \"%s\"\n)",
-        col_name, h, n, N_arg, mtd)
+        "\n# Replace the path with your actual file\ny_df <- read.csv(\"your_data.csv\", stringsAsFactors = FALSE)\ny    <- y_df$%s\n\nres <- strata.data(\n  data   = y,\n  h      = %dL,\n  n      = %dL,\n  method = \"%s\"\n)",
+        col_name, h, n, mtd)
     }
 
     # ---- result annotation (if a run has been completed) --------------------

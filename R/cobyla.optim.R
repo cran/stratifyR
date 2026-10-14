@@ -32,12 +32,10 @@
 #
 # Uses the actual data (my_env$data_sorted_real) rather than the analytical
 # data.root formula.  The empirical sum(Wh * Sh) is exactly what data.alloc
-# computes, so its minimum aligns with the DP's reported WhShTot.
-#
-# The analytical data.root objective has a different continuous minimum from
-# the DP grid solution - its effective landscape is altered by the discrete
-# approximation inside data.optim.  Minimising the empirical objective
-# directly avoids this inconsistency and finds boundaries that match the DP.
+# reports as WhShTot, so COBYLA and GLOBAL minimise the reported cost
+# directly.  (The "dp" solver instead minimises the cost under the fitted
+# distribution, and "exact" minimises this same empirical cost by DP on the
+# sorted data.)
 #
 # b_interior: interior boundary distances from initval on the SCALED axis (length H-1).
 # Returns sum_h Wh*Sh computed from the raw data.
@@ -56,8 +54,8 @@
   for (h in seq_len(H)) {
     lo <- boundaries[h]
     hi <- boundaries[h + 1L]
-    # Inclusive on both ends for first stratum, left-exclusive otherwise
-    # (matches data.alloc convention: data >= lo & data <= hi)
+    # First stratum is [min, b1]; the others are (b[h-1], b[h]].
+    # This matches data.alloc, so every unit is counted exactly once.
     slice <- if (h == 1L)
       data_s[data_s >= lo & data_s <= hi]
     else
@@ -133,7 +131,7 @@
   }
 
   # Ensure strictly increasing (remove near-duplicate interior boundaries)
-  min_gap <- rng / (H * 3)
+  min_gap <- rng / 1000
   for (i in seq_len(nb - 1L)) {
     if (i + 1L <= nb && b[i + 1L] - b[i] < min_gap) {
       b[i + 1L] <- b[i] + min_gap
@@ -174,6 +172,13 @@
   nb   <- H - 1L
   dist <- my_env$dist
 
+  # The random restarts call set.seed() for reproducibility; restore the
+  # user's random number stream afterwards so the solver has no side effect.
+  if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+    old_seed <- get(".Random.seed", envir = globalenv())
+    on.exit(assign(".Random.seed", old_seed, envir = globalenv()), add = TRUE)
+  }
+
   # H=1 trivial: single stratum spanning the whole range.
   if (nb == 0L) {
     root <- if (use_distr)
@@ -190,12 +195,12 @@
     function(b) .cobyla_obj_data(b, my_env, H)
   }
 
-  # Minimum stratum width: at least 33% of the "fair-share" width per stratum.
-  # This prevents COBYLA from collapsing a stratum to near-zero width, which
-  # would lower the objective (data.root -> 0) and create a false local minimum.
-  # Note: the global optimum typically has strata wider than dist/(H*3) in
-  # practice, so this constraint does not exclude correct solutions.
-  min_gap <- dist / (H * 3)
+  # Minimum separation between adjacent boundaries: dist/1000, as in the
+  # problem formulation.  Version 2.0-1 used dist/(3H), which excluded the
+  # narrow strata that skewed and heavy-tailed populations need.  Designs with
+  # fewer than two units in a stratum are handled by the objective (penalty)
+  # and by .cobyla_is_degenerate().
+  min_gap <- dist / 1000
   lb_vec  <- seq_len(nb) * min_gap                          # i-th boundary >= i*min_gap from start
   ub_vec  <- dist - (nb + 1L - seq_len(nb)) * min_gap      # symmetric from end
 
@@ -314,9 +319,10 @@
 # Returns OSB: real-axis interior boundaries (length H-1).
 .cobyla_real_osb <- function(b_dist, my_env) {
   # b_dist are distances from scaled initval; absolute scaled positions:
-  b_scaled_abs <- my_env$initval + b_dist
-  # Real-axis boundaries:
-  round(b_scaled_abs * my_env$maxval, digits = 4)
+  b_scaled_abs <- my_env$initval + sort(b_dist)
+  # Real-axis boundaries, followed by the top of the range (v2.0-2: every
+  # solver returns h values, the last being the maximum)
+  c(b_scaled_abs * my_env$maxval, my_env$finval * my_env$maxval)
 }
 
 
@@ -482,37 +488,50 @@
 # Degeneracy detector
 # -----------------------------------------------------------------------------
 
-# Returns TRUE if any implied stratum is narrower than dist/(H*20).
-# Used by .solve_cobyla_data / .solve_cobyla_distr to decide whether to
-# fall back to the DP solver.
+# Returns TRUE only if a stratum is numerically empty (adjacent boundaries
+# closer than dist * 1e-6) or, for data, holds fewer than two units.
+# In that rare case .solve_cobyla_* fall back to the DP solver.
 .cobyla_is_degenerate <- function(b_dist, my_env, h) {
   if (length(b_dist) == 0L) return(FALSE)          # H=1: always valid
-  # Full set of scaled boundary distances from initval: 0, b1, b2, ..., dist
+  # A solution is degenerate only if a stratum is (numerically) empty.
+  # Width alone is not a test: optimal strata for skewed or heavy-tailed
+  # populations can be much narrower than the "fair share" dist/H.
   gaps <- diff(c(0, sort(b_dist), my_env$dist))
-  min_valid <- my_env$dist / (h * 4)               # 25% of fair-share width (half of constraint)
-  any(gaps < min_valid)
+  if (any(gaps < my_env$dist * 1e-6)) return(TRUE)
+  ds <- if (exists("data_sorted_real", envir = my_env, inherits = FALSE))
+          get("data_sorted_real", envir = my_env) else NULL
+  if (!is.null(ds) && length(ds) > 0L) {
+    lo   <- my_env$initval * my_env$maxval
+    cuts <- c(-Inf, lo + sort(b_dist) * my_env$maxval, Inf)
+    cnt  <- tabulate(findInterval(ds, cuts, left.open = TRUE), nbins = length(cuts) - 1L)
+    if (any(cnt < 2L)) return(TRUE)
+  }
+  FALSE
 }
 
 
 # -----------------------------------------------------------------------------
-# Global optimizer: DIRECT-L + COBYLA refinement
+# Global optimizer: DIRECT-L + BOBYQA refinement
 # -----------------------------------------------------------------------------
 
 # Two-phase global optimisation:
-#   Phase 1 - DIRECT-L (NLOPT_GN_DIRECT_L): deterministic global search.
-#             Systematically subdivides the search space; cannot miss the
-#             global basin for smooth bounded objectives.
-#   Phase 2 - COBYLA local refinement from the DIRECT-L solution.
+#   Phase 1 - DIRECT-L (NLOPT_GN_DIRECT_L): deterministic space-filling search
+#             with a budget of max(5000, 5000 * (H - 1)) evaluations.
+#   Phase 2 - BOBYQA local refinement from the best DIRECT-L point.
+#   If neither phase finds a feasible design (objective below the penalty),
+#   the function falls back to multi-start COBYLA (.cobyla_run).
 #
-# This combination reliably finds the same global minimum as DP, while
-# remaining faster for moderate H (H <= 4).
+# GLOBAL usually matches COBYLA, but the DIRECT-L budget can be too small to
+# resolve narrow optimal strata on very wide ranges (e.g. Cauchy, or
+# log-normal at larger H).  Multi-start COBYLA is the recommended fast
+# solver; "exact" gives the certified optimum for data.
 #
 # @param my_env          Shared environment (dist, ch, obj, ...).
 # @param H               Number of strata.
 # @param use_distr       TRUE = distr.root; FALSE = data.root.
 # @param max_eval_global Max DIRECT-L evaluations (NULL -> auto from H).
-# @param max_eval_local  Max COBYLA evaluations for the refinement phase.
-# @param tol             ftol_rel for COBYLA refinement.
+# @param max_eval_local  Max BOBYQA evaluations for the refinement phase.
+# @param tol             ftol_rel for the refinement phase.
 # @param verbose         Print per-phase progress.
 #
 # @return list(b_dist, objective, converged) - same layout as .cobyla_run().
@@ -543,7 +562,7 @@
     function(b) .cobyla_obj_data(b, my_env, H)
 
   # Same min-gap constraints as the COBYLA solver
-  min_gap <- dist / (H * 3)
+  min_gap <- dist / 1000   # was dist/(3H); see audit
   lb_vec  <- seq_len(nb) * min_gap
   ub_vec  <- dist - (nb + 1L - seq_len(nb)) * min_gap
 
@@ -580,7 +599,7 @@
     cat(sprintf("  [GLOBAL] DIRECT-L : obj = %.8f  (evals = %d)\n",
                 res_global$objective, res_global$iterations))
 
-  # ---- Phase 2: COBYLA local refinement from DIRECT-L solution ---------------
+  # ---- Phase 2: BOBYQA local refinement from DIRECT-L solution ---------------
   b_warm <- if (!is.null(res_global) && is.finite(res_global$objective))
     sort(res_global$solution)
   else
@@ -611,11 +630,25 @@
   if (verbose && !is.null(res_local) && is.finite(res_local$objective))
     cat(sprintf("  [GLOBAL] BOBYQA   : obj = %.8f\n", res_local$objective))
 
-  # Return the better of the two phases
-  global_ok <- !is.null(res_global) && is.finite(res_global$objective)
-  local_ok  <- !is.null(res_local)  && is.finite(res_local$objective)
+  # Return the better of the two phases. The objective returns a 1e10 penalty
+  # for infeasible partitions (a stratum with fewer than two units), so a
+  # penalty value is treated as a failure, not as a solution.
+  penalty   <- 1e9
+  global_ok <- !is.null(res_global) && is.finite(res_global$objective) &&
+               res_global$objective < penalty
+  local_ok  <- !is.null(res_local)  && is.finite(res_local$objective) &&
+               res_local$objective < penalty
+  if (!global_ok && !local_ok) {
+    if (verbose) message("[GLOBAL] no feasible point found; using multi-start COBYLA instead.")
+    return(.cobyla_run(my_env, H, use_distr = use_distr, tol = tol, verbose = verbose,
+                       data_sorted = if (use_distr) NULL else
+                         sort(my_env$data_sorted_real / my_env$maxval)))
+  }
 
-  if (local_ok && (!global_ok || res_local$objective < res_global$objective)) {
+  # Prefer the refined point on ties: BOBYQA starts at the DIRECT-L point, so an
+  # equal objective means the refinement confirmed it (and has a proper
+  # convergence status, whereas DIRECT-L always stops on its evaluation budget).
+  if (local_ok && (!global_ok || res_local$objective <= res_global$objective)) {
     list(b_dist    = sort(res_local$solution),
          objective = res_local$objective,
          converged = res_local$status %in% c(1L, 2L, 3L, 4L))

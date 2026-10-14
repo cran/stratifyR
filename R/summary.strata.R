@@ -124,7 +124,7 @@ summary.strata <- function(object, ...) {
    ## --- 2) Build results table -------------------------------------------------
    # OSB: COBYLA returns h-1 interior boundaries; DP returns h values (interior +
    # final). Pad to exactly h elements so the data.frame row counts match.
-   osb_vec <- as.numeric(object$OSB)
+   osb_vec <- signif(as.numeric(object$OSB), 6)
    if (length(osb_vec) < h) {
       final_val <- round(object$maxval * object$finval, 2)
       osb_vec   <- c(osb_vec, rep(final_val, h - length(osb_vec)))

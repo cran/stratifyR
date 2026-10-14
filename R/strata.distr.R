@@ -336,7 +336,9 @@ strata.distr <- function(h,
   }
 
   my_env$df <- data.frame(h, d, y, x)
-  OSB <- round(my_env$maxval * my_env$df$x, digits = 2)
+  # v2.0-2: keep full precision and make the top boundary the range end
+  OSB <- my_env$maxval * my_env$df$x
+  OSB[h] <- my_env$maxval * my_env$finval
   .store_osb_env(OSB, my_env, h)
 
   attr(OSB, "converged")      <- TRUE

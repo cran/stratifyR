@@ -32,9 +32,12 @@ data.alloc <- function(data, my_env)
   data <- sort(data)
   Ntot <- length(data)
   
+  # v2.0-2: assign every unit to exactly one stratum, (b_{i-1}, b_i], with the
+  # first stratum closed below and the last open above, so no unit is dropped
+  # or counted twice.
+  grp <- findInterval(data, x[2:h], left.open = TRUE) + 1L
   for (i in 1:(length(x) - 1L)) {
-    # interval follows your original convention: [x[i], x[i+1]] inclusive
-    slice   <- data[data >= x[i] & data <= x[i + 1L]]
+    slice   <- data[grp == i]
     Nh[i]   <- length(slice)
     Wh[i]   <- Nh[i] / Ntot
     # Guard: var() returns NA for 0- or 1-element slices; treat as 0
@@ -74,10 +77,12 @@ data.alloc <- function(data, my_env)
   }
   
   # -------- assemble user-facing outputs and totals --------
+  # v2.0-2: whole-number sample sizes that add up to n (largest remainder)
+  nh <- .round_alloc(nh, Nh)
   fh <- ifelse(Nh == 0, 0, round(nh / Nh, 2))   # guard: 0/0 -> 0 for empty strata
-  my_env$out <- data.frame(nh = round(nh), Nh = Nh, fh = fh)
+  my_env$out <- data.frame(nh = nh, Nh = Nh, fh = fh)
   
-  my_env$deno  <- round(deno, 3)
+  my_env$deno  <- round(deno, 6)
   my_env$WhTot <- round(sum(Wh), 0)
   my_env$NhTot <- sum(Nh)
   my_env$nhTot <- round(sum(nh))

@@ -11,9 +11,9 @@
 #' Opens the \pkg{stratifyR} web interface in the default browser. The
 #' application gives no-code access to the package: users upload their own data
 #' (CSV or Excel) or select a built-in dataset, compute optimum stratum
-#' boundaries and sample sizes with the \code{"dp"}, \code{"cobyla"} or
-#' \code{"global"} solvers, compare design efficiencies, explore boundaries
-#' interactively, and download the results.
+#' boundaries and sample sizes with the \code{"dp"}, \code{"cobyla"},
+#' \code{"global"} or \code{"exact"} solvers, compare design efficiencies,
+#' explore boundaries interactively, and download the results.
 #'
 #' @details
 #' The application needs \pkg{shiny}, \pkg{bslib} and \pkg{DT} to start; if any

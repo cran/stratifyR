@@ -57,3 +57,30 @@ for(i in 1:(length(x)-1))
   my_env$nh <- nh #return samples
 }
 ######################################################################################S
+# -----------------------------------------------------------------------------
+# .round_alloc (internal, v2.0-2)
+#
+# Rounds the stratum sample sizes to whole numbers so that they add up to the
+# requested total and no stratum takes more units than it has. Rounding each
+# n_h on its own can make the total one more or one less than n (for example
+# 62.5 + 102.5 + 135 -> 63 + 103 + 135 = 301). This uses the largest-remainder
+# rule: round every n_h down, then give the leftover units, one each, to the
+# strata with the largest fractional parts that still have room.
+# -----------------------------------------------------------------------------
+.round_alloc <- function(nh, Nh) {
+  nh[!is.finite(nh)] <- 0
+  cap    <- floor(Nh + 1e-8)
+  target <- min(round(sum(nh)), sum(cap))
+  base   <- pmin(floor(nh + 1e-8), cap)
+  left   <- target - sum(base)
+  if (left > 0) {
+    frac <- nh - base
+    frac[base >= cap] <- -Inf
+    ord  <- order(frac, decreasing = TRUE)
+    for (i in ord) {
+      if (left <= 0) break
+      if (base[i] < cap[i]) { base[i] <- base[i] + 1; left <- left - 1 }
+    }
+  }
+  base
+}

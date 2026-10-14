@@ -15,14 +15,6 @@ head(quakes)
 mag <- quakes$mag
 length(mag)
 hist(mag) #to see the distribution
-# In development, source the 2.0-1 R files to override the installed 1.0-5 functions.
-# The library() call above is still needed to make package datasets available.
-# When the 2.0-1 package is properly installed, the if-block below is a no-op.
-local({
-  r_dir <- file.path("..", "R")
-  if (dir.exists(r_dir))
-    invisible(lapply(list.files(r_dir, pattern = "\\.R$", full.names = TRUE), source))
-})
 res <- strata.data(mag, h = 2, n=300) # a 2-strata solution
 summary(res)
 
@@ -37,8 +29,7 @@ res <- strata.distr(h=2, initval=40, dist=640, distr = "triangle",
 summary(res)
 
 ## ----include=TRUE-------------------------------------------------------------
-# Iron variable from the anaemia data follows Weibull(shape=2.1446, scale=13.7907)
-# as established in Section 7.4. Using those known parameters directly here.
+# Weibull(shape = 2.1446, scale = 13.7907), as fitted to the Iron variable
 data(anaemia)
 Iron <- anaemia$Iron
 
@@ -49,49 +40,80 @@ res_dp_d <- strata.distr(h=3, initval=1.5, dist=33.2,
 summary(res_dp_d)
 
 ## ----include=TRUE-------------------------------------------------------------
-# COBYLA (fast approximation)
+# COBYLA
 res_cob_d <- strata.distr(h=3, initval=1.5, dist=33.2,
                distr="weibull", params=c(shape=2.1446, scale=13.7907),
                n=350, N=724, method="cobyla")
-summary(res_cob_d)
 
-## ----include=TRUE-------------------------------------------------------------
-# GLOBAL (DIRECT-L + COBYLA)
+# GLOBAL (DIRECT-L + BOBYQA)
 res_glob_d <- strata.distr(h=3, initval=1.5, dist=33.2,
                 distr="weibull", params=c(shape=2.1446, scale=13.7907),
                 n=350, N=724, method="global")
-summary(res_glob_d)
 
-## ----include=TRUE-------------------------------------------------------------
-# Direct comparison of all three methods
-cat("DP     OSB:", round(res_dp_d$OSB, 2),   "  WhShTot:", round(res_dp_d$WhShTot, 4), "\n")
-cat("COBYLA OSB:", round(res_cob_d$OSB, 2),  "  WhShTot:", round(res_cob_d$WhShTot, 4), "\n")
-cat("GLOBAL OSB:", round(res_glob_d$OSB, 2), "  WhShTot:", round(res_glob_d$WhShTot, 4), "\n")
+# Direct comparison of the three methods
+cat("DP     OSB:", round(res_dp_d$OSB, 3),   "  WhShTot:", res_dp_d$WhShTot, "\n")
+cat("COBYLA OSB:", round(res_cob_d$OSB, 3),  "  WhShTot:", res_cob_d$WhShTot, "\n")
+cat("GLOBAL OSB:", round(res_glob_d$OSB, 3), "  WhShTot:", res_glob_d$WhShTot, "\n")
 
 ## ----include=TRUE-------------------------------------------------------------
 data(anaemia)
 Iron <- anaemia$Iron
-Iron[Iron == min(Iron)] <- -0.001  # as per standard package convention
 
-# DP (recommended for strata.data)
-res_dp_s <- strata.data(Iron, h=2, n=350, method="dp")
-summary(res_dp_s)
+res_dp_s    <- strata.data(Iron, h=2, n=350, method="dp")
+res_cob_s   <- strata.data(Iron, h=2, n=350, method="cobyla")
+res_glob_s  <- strata.data(Iron, h=2, n=350, method="global")
+res_exact_s <- strata.data(Iron, h=2, n=350, method="exact")
+summary(res_exact_s)
 
-## ----include=TRUE-------------------------------------------------------------
-# COBYLA
-res_cob_s <- strata.data(Iron, h=2, n=350, method="cobyla")
-summary(res_cob_s)
-
-## ----include=TRUE-------------------------------------------------------------
-# GLOBAL
-res_glob_s <- strata.data(Iron, h=2, n=350, method="global")
-summary(res_glob_s)
-
-## ----include=TRUE-------------------------------------------------------------
 # Direct comparison
-cat("DP     OSB:", round(res_dp_s$OSB, 2),   "  WhShTot:", round(res_dp_s$WhShTot, 4), "\n")
-cat("COBYLA OSB:", round(res_cob_s$OSB, 2),  "  WhShTot:", round(res_cob_s$WhShTot, 4), "\n")
-cat("GLOBAL OSB:", round(res_glob_s$OSB, 2), "  WhShTot:", round(res_glob_s$WhShTot, 4), "\n")
+cat("DP     OSB:", round(res_dp_s$OSB, 3),    "  WhShTot:", res_dp_s$WhShTot, "\n")
+cat("COBYLA OSB:", round(res_cob_s$OSB, 3),   "  WhShTot:", res_cob_s$WhShTot, "\n")
+cat("GLOBAL OSB:", round(res_glob_s$OSB, 3),  "  WhShTot:", res_glob_s$WhShTot, "\n")
+cat("EXACT  OSB:", round(res_exact_s$OSB, 3), "  WhShTot:", res_exact_s$WhShTot, "\n")
+
+## ----include=TRUE-------------------------------------------------------------
+data(hies)
+expend <- hies$Expenditure
+summary(expend)
+
+## ----include=TRUE-------------------------------------------------------------
+res <- strata.data(expend, h = 4, n = 400, method = "exact")
+res
+res$OSB
+res$nh
+sum(res$nh)    # the stratum sample sizes always add up to n
+
+## ----include=TRUE, fig.width=5, fig.height=3.5--------------------------------
+h_values <- 2:7
+cost_h <- sapply(h_values, function(h)
+  strata.data(expend, h = h, n = 400, method = "cobyla")$WhShTot)
+round(cost_h, 1)
+round(100 * (1 - cost_h[-1] / cost_h[-length(cost_h)]), 1)   # % drop at each step
+plot(h_values, cost_h, type = "b", pch = 19,
+     xlab = "Number of strata (h)", ylab = "WhShTot",
+     main = "Neyman cost by number of strata")
+
+## ----include=TRUE-------------------------------------------------------------
+compare_designs(res)
+
+## ----include=TRUE-------------------------------------------------------------
+ch <- c(1, 1, 2, 4)    # relative cost of one interview in each stratum
+res_cost <- strata.data(expend, h = 4, n = 400, method = "exact",
+                        cost = TRUE, ch = ch)
+rbind(equal_costs = res$nh, with_costs = res_cost$nh)
+c(equal_costs = sum(res$nh * ch), with_costs = sum(res_cost$nh * ch))   # field cost
+
+## ----include=TRUE, fig.width=6, fig.height=4----------------------------------
+plot(res, data = expend)
+
+## ----eval=FALSE---------------------------------------------------------------
+# plot(res, type = "3d")            # needs plotly
+# plot(res, type = "interactive")   # needs plotly
+
+## ----eval=FALSE---------------------------------------------------------------
+# options(stratifyR.exact_max_cand = 50000)
+# res_big <- strata.data(big_frame, h = 5, n = 2000, method = "exact")
+# res_big$exact_full
 
 ## ----include=TRUE-------------------------------------------------------------
 set.seed(8235411)
@@ -127,14 +149,16 @@ final_marks <- math$final_marks
 a <- min(final_marks); b <- max(final_marks)
 a; b; d <- b - a; d
 
-# Estimate parameters: fix min and max to sample bounds, estimate only mode by MLE
-br <- pretty(final_marks, n = 20)
-hh <- hist(final_marks, breaks = br, plot = FALSE)
-m0 <- hh$mids[which.max(hh$counts)]          # histogram mode proxy
-fit <- fitdist(final_marks, distr = "triang", method = "mle",
-               start   = list(mode = m0),
-               fix.arg = list(min = a, max = b))
-fit
+# Estimate the mode by maximum likelihood, with min and max fixed just outside
+# the sample range (the density is zero at min and max, so they cannot equal
+# sample values). The likelihood of a triangular mode is maximised at one of
+# the data values, so we simply evaluate it at each distinct value. This is
+# exact and gives the same answer on every platform.
+lo <- a - 0.01 * d; hi <- b + 0.01 * d
+loglik <- function(m) sum(log(mc2d::dtriang(final_marks, min = lo, mode = m, max = hi)))
+cand <- sort(unique(final_marks))
+mode_hat <- cand[which.max(sapply(cand, loglik))]
+mode_hat
 
 # 2-strata solution
 res <- strata.distr(h=2, initval=7, dist=90, distr = "triangle",
@@ -264,39 +288,43 @@ summary(res)
 
 ## ----echo=FALSE, message=FALSE------------------------------------------------
 comparison_table <- data.frame(
-  Distribution = c("Pareto", "Exponential", "Gamma", "Log-Normal",
-                   "Uniform", "Normal", "Right-Triangular",
-                   "Weibull", "Triangular", "Cauchy"),
-  `Example Data` = c(
-    "Simulated (N=5000, shape=5, scale=8)",
-    "Simulated (N=5000, rate=1.36)",
-    "Simulated (N=500, shape=3, rate=0.7)",
-    "HIES Expenditure (N=3566)",
-    "Simulated (N=5000, min=2, max=15)",
-    "Simulated (N=5000, mean=6, sd=2.1)",
-    "Simulated (N=1000, a=2, b=8)",
-    "Anaemia Iron (N=724, h=3)",
-    "Math final marks (N=354)",
-    "Simulated (N=3000, location=15, scale=4)"
-  ),
-  `DP` = c(0.938, 0.399, 1.347, 6754.79, 1.880, 1.006, 0.727, 2.461, 10.741, 8.442),
-  `COBYLA` = c(1.204, 0.425, 1.405, 6801.42, 1.880, 1.008, 0.727, 2.433, 10.715, 8.468),
-  `GLOBAL` = c(1.204, 0.425, 1.405, 6801.42, 1.880, 1.008, 0.727, 2.433, 10.715, 8.468),
-  `Outcome` = c(
-    "DP clearly better",
-    "DP clearly better",
-    "DP clearly better",
-    "DP clearly better",
-    "All agree",
-    "All agree",
-    "All agree",
-    "COBYLA/GLOBAL marginally better",
-    "COBYLA/GLOBAL marginally better",
-    "DP marginally better"
-  ),
+  Section = c("Pareto", "Triangular", "Right-triangular", "Weibull", "Gamma",
+              "Exponential", "Uniform", "Normal", "Log-normal", "Cauchy"),
+  Data = c("Simulated", "math final marks", "Simulated", "anaemia Iron",
+           "anaemia Folate", "Simulated", "Simulated", "Simulated",
+           "hies Expenditure", "Boston black"),
+  N = c(5000, 487, 1000, 724, 724, 5000, 5000, 5000, 3566, 506),
+  `AIC family` = c("weibull", "weibull", "lnorm", "norm", "norm",
+                   "exp", "unif", "norm", "lnorm", "cauchy"),
+  DP     = c(0.9382, 7.1172, 0.4959, 2.4638, 2.9357, 0.27360, 1.2471, 0.71698, 4678.5, 20.672),
+  COBYLA = c(0.9271, 7.0916, 0.4885, 2.4434, 2.8985, 0.27341, 1.2470, 0.71685, 4598.9, 14.921),
+  GLOBAL = c(0.9271, 7.0916, 0.4885, 2.4434, 2.8985, 0.27341, 1.2470, 0.71685, 4598.9, 14.921),
+  EXACT  = c(0.9271, 7.0916, 0.4885, 2.4434, 2.8985, 0.27341, 1.2470, 0.71685, 4598.9, 14.921),
+  `DP gap (%)` = c(1.19, 0.36, 1.50, 0.84, 1.28, 0.07, 0.01, 0.02, 1.73, 38.5),
   check.names = FALSE
 )
+knitr::kable(comparison_table, align = "llrlrrrrr",
+             caption = "Table 1: Neyman cost (WhShTot) of the four solvers with h = 3 on the examples of Section 9. 'AIC family' is the distribution chosen by AIC, which the DP optimises. 'DP gap' is the DP cost above the exact optimum. Lower WhShTot means a more efficient design.")
 
-knitr::kable(comparison_table, digits = 3, align = "lllllll",
-             caption = "Table 1: Comparison of DP, COBYLA and GLOBAL methods across all ten distributions supported by stratifyR. WhShTot values shown for h=2 (h=3 for Weibull). Lower WhShTot indicates a more efficient stratification.")
+## ----eval=FALSE---------------------------------------------------------------
+# library(MASS); library(triangle); library(actuar)
+# pops <- list()
+# set.seed(8235411); pops$Pareto <- actuar::rpareto(5000, shape=5, scale=8)
+# data(math); pops$Triangular <- math$final_marks
+# set.seed(12546); pops$`Right-triangular` <- rtriangle(n=1000, a=2, b=8, c=2)
+# data(anaemia)
+# x <- anaemia$Iron;   x[x == min(x)] <- -0.001; pops$Weibull <- x
+# x <- anaemia$Folate; x[x == min(x)] <- -0.001; pops$Gamma   <- x
+# set.seed(28951); pops$Exponential <- rexp(5000, rate=1.36)
+# set.seed(15669); pops$Uniform <- runif(5000, min=2, max=15)
+# set.seed(89821); pops$Normal <- rnorm(5000, mean=16, sd=1.65)
+# data(hies); pops$`Log-normal` <- hies$Expenditure
+# pops$Cauchy <- Boston$black
+# 
+# tab <- t(sapply(pops, function(d) {
+#   n <- min(500, floor(length(d) / 2))
+#   sapply(c("dp", "cobyla", "global", "exact"),
+#          function(m) strata.data(d, h=3, n=n, method=m)$WhShTot)
+# }))
+# tab
 

@@ -339,8 +339,10 @@ distr.alloc <- function(my_env)
   }
   
   # ----------------------- assemble user-facing outputs ----------------------
+  # v2.0-2: whole-number sample sizes that add up to n (largest remainder)
+  nh <- .round_alloc(nh, round(Nh))
   fh <- round(nh / Nh, 2)
-  my_env$out <- data.frame(nh = round(nh), Nh = round(Nh), fh = fh)
+  my_env$out <- data.frame(nh = nh, Nh = round(Nh), fh = fh)
   
   # Build the summary table ONCE (AWh for all except uniform, which uses Wh)
   outWh <- if (distr == "unif") Wh else AWh

@@ -1,12 +1,13 @@
 Package: stratifyR
 Type: Package
 Title: Optimal Stratification of Univariate Populations
-Version: 2.0-1
-Date: 2026-09-10
+Version: 2.0-2
+Date: 2026-10-14
 Authors@R: c(
     person("Karuna G.", "Reddy",
            email   = "karuna.reddy@auckland.ac.nz",
-           role    = c("aut", "cre")),
+           role    = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-9467-4668")),
     person("M. G. M.", "Khan",
            email  = "mgm.khan@usp.ac.fj",
            role   = "aut")
@@ -18,11 +19,13 @@ Description: Determines Optimum Strata Boundaries (OSB) and Optimum Sample
     continuous families (normal, log-normal, gamma, Weibull, exponential,
     Cauchy, uniform, Pareto, triangular and right-triangular), and the
     optimum boundaries are obtained by minimising the Neyman objective.
-    Version 2.0 keeps the original globally optimal Dynamic Programming (DP)
-    solver of Reddy and Khan (2020) as the default and adds two faster
-    derivative-free alternatives for interactive and large-scale use: a
-    multi-start 'COBYLA' solver and a two-phase 'global' solver that couples
-    'DIRECT-L' with 'COBYLA' refinement.  It also provides cost-constrained
+    Version 2.0 keeps the Dynamic Programming (DP) solver of Reddy and Khan
+    (2020), which is globally optimal for the fitted distribution, as the
+    default.  It adds two fast derivative-free solvers, a multi-start
+    'COBYLA' solver and a two-phase global solver that couples 'DIRECT-L'
+    with 'BOBYQA' refinement, and an exact solver that runs dynamic
+    programming on the sorted data and returns the partition with the
+    smallest empirical Neyman cost.  It also provides cost-constrained
     allocation with unequal per-stratum costs, a design-efficiency comparison
     (compare_designs), two- and three-dimensional and interactive
     visualisations, solution-quality diagnostics (a Cauchy-Schwarz optimality
@@ -34,6 +37,8 @@ Description: Determines Optimum Strata Boundaries (OSB) and Optimum Sample
     Reddy and Khan (2018) <doi:10.1111/anzs.12244> and Reddy and Khan (2020)
     <doi:10.1111/anzs.12301>.
 License: GPL (>= 3)
+URL: https://github.com/karunaredz/stratifyR
+BugReports: https://github.com/karunaredz/stratifyR/issues
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 4.1.0)
@@ -45,9 +50,10 @@ Suggests: shiny, bslib, DT, readxl, stratification, plotly (>= 4.10.0),
 VignetteBuilder: knitr
 RoxygenNote: 7.3.1
 NeedsCompilation: no
-Packaged: 2026-09-09 23:59:51 UTC; karunareddy
-Author: Karuna G. Reddy [aut, cre],
+Packaged: 2026-10-14 22:25:08 UTC; karunareddy
+Author: Karuna G. Reddy [aut, cre] (ORCID:
+    <https://orcid.org/0000-0002-9467-4668>),
   M. G. M. Khan [aut]
 Maintainer: Karuna G. Reddy <karuna.reddy@auckland.ac.nz>
 Repository: CRAN
-Date/Publication: 2026-09-10 14:40:08 UTC
+Date/Publication: 2026-10-14 23:10:02 UTC
