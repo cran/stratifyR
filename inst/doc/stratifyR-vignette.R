@@ -174,7 +174,7 @@ res <- strata.data(data, h = 2, n=500) # a 2-strata solution
 summary(res)
 
 ## ----include=TRUE-------------------------------------------------------------
-res <- strata.distr(h=2, initval=1.007202, dist=0.992781, distr = "rtriangle",
+res <- strata.distr(h=2, initval=2, dist=8, distr = "rtriangle",
          params = c(min=2, max=10, mode=2), n=500, N=1000)
 summary(res)
 
@@ -294,13 +294,13 @@ comparison_table <- data.frame(
            "anaemia Folate", "Simulated", "Simulated", "Simulated",
            "hies Expenditure", "Boston black"),
   N = c(5000, 487, 1000, 724, 724, 5000, 5000, 5000, 3566, 506),
-  `AIC family` = c("weibull", "weibull", "lnorm", "norm", "norm",
+  `AIC family` = c("pareto", "weibull", "rtriangle", "norm", "norm",
                    "exp", "unif", "norm", "lnorm", "cauchy"),
-  DP     = c(0.9382, 7.1172, 0.4959, 2.4638, 2.9357, 0.27360, 1.2471, 0.71698, 4678.5, 20.672),
+  DP     = c(0.9276, 7.1172, 0.4889, 2.4638, 2.9357, 0.27360, 1.2471, 0.71698, 4678.5, 20.672),
   COBYLA = c(0.9271, 7.0916, 0.4885, 2.4434, 2.8985, 0.27341, 1.2470, 0.71685, 4598.9, 14.921),
   GLOBAL = c(0.9271, 7.0916, 0.4885, 2.4434, 2.8985, 0.27341, 1.2470, 0.71685, 4598.9, 14.921),
   EXACT  = c(0.9271, 7.0916, 0.4885, 2.4434, 2.8985, 0.27341, 1.2470, 0.71685, 4598.9, 14.921),
-  `DP gap (%)` = c(1.19, 0.36, 1.50, 0.84, 1.28, 0.07, 0.01, 0.02, 1.73, 38.5),
+  `DP gap (%)` = c(0.05, 0.36, 0.08, 0.84, 1.28, 0.07, 0.01, 0.02, 1.73, 38.5),
   check.names = FALSE
 )
 knitr::kable(comparison_table, align = "llrlrrrrr",
