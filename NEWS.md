@@ -1,3 +1,56 @@
+# stratifyR 2.0-4  (2026-10-24)
+
+## Solvers
+
+* `method = "exact"` has two new options. With `fpc = TRUE` it minimises the
+  full variance of the stratified mean under Neyman allocation, including the
+  finite population correction, instead of the objective function
+  sum(W_h S_h). The minimum is found by the same dynamic programme, applied to
+  a sequence of additive bounds, and is certified when `optimality_gap` is 0.
+  With `takeall = TRUE` the top stratum may be sampled completely (a take-all
+  stratum) when this lowers the variance, as is usual for the few very large
+  units in business and farm surveys; every size of take-all stratum is tried.
+  Both options are for data (`strata.data()`) and cannot be combined with
+  `cost = TRUE`.
+
+## Output
+
+* `strata` objects from `strata.data()` have three new elements: `variance`
+  (the variance of the stratified mean, with the finite population correction,
+  for the final allocation), `takeall` (the size of the take-all stratum, 0 if
+  none) and `fpc`. `summary()` shows the take-all stratum and the variance when
+  these options are used.
+* `strata.data()` now warns when a stratum gets fewer than 2 sample units.
+
+## Shiny app
+
+* With the EXACT solver and a data source, two tick boxes give the new options
+  `fpc` and `takeall`. The results then show the variance with the finite
+  population correction and the size of the take-all stratum, and the exported
+  R code includes the options.
+* Drop-down lists (built-in datasets and data columns) now have a solid
+  background, so every option is readable, not only the first one. Long
+  lists scroll, and the option under the mouse is highlighted.
+* Long dashes in the app's labels and text were replaced with plain hyphens.
+* The number of strata is now written as L (as in Reddy & Khan, 2020) instead
+  of H in the app's labels, formulas, tables and plots. The "H Selector" tab is
+  now called "Strata Count".
+
+## Vignette
+
+* New section "Full variance and a take-all stratum" with a worked example,
+  a new point in "Which method should I use?", the new `variance` and
+  `takeall` elements in the table of results, and the term "objective
+  function" for sum(W_h S_h), as in the JSS paper.
+
+## Printed output
+
+* `print()` for `strata` objects, `print()` for `compare_designs` objects and
+  the 3D plot title now label the number of strata as L. The `H` element of
+  the `compare_designs` object is unchanged, so existing code still works.
+
+---
+
 # stratifyR 2.0-3  (2026-10-16)
 
 A robustness release for very heavy-tailed populations, found with a 20-seed

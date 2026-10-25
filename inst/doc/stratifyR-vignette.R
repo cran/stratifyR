@@ -91,7 +91,7 @@ round(cost_h, 1)
 round(100 * (1 - cost_h[-1] / cost_h[-length(cost_h)]), 1)   # % drop at each step
 plot(h_values, cost_h, type = "b", pch = 19,
      xlab = "Number of strata (h)", ylab = "WhShTot",
-     main = "Neyman cost by number of strata")
+     main = "Objective function by number of strata")
 
 ## ----include=TRUE-------------------------------------------------------------
 compare_designs(res)
@@ -102,6 +102,13 @@ res_cost <- strata.data(expend, h = 4, n = 400, method = "exact",
                         cost = TRUE, ch = ch)
 rbind(equal_costs = res$nh, with_costs = res_cost$nh)
 c(equal_costs = sum(res$nh * ch), with_costs = sum(res_cost$nh * ch))   # field cost
+
+## ----include=TRUE-------------------------------------------------------------
+res_fpc <- strata.data(expend, h = 4, n = 400, method = "exact", fpc = TRUE)
+res_ta  <- strata.data(expend, h = 4, n = 400, method = "exact", takeall = TRUE)
+c(objective = res$variance, fpc = res_fpc$variance, takeall = res_ta$variance)
+res_ta$takeall    # units in the take-all top stratum (0 if there is none)
+res_ta$nh
 
 ## ----include=TRUE, fig.width=6, fig.height=4----------------------------------
 plot(res, data = expend)
@@ -304,7 +311,7 @@ comparison_table <- data.frame(
   check.names = FALSE
 )
 knitr::kable(comparison_table, align = "llrlrrrrr",
-             caption = "Table 1: Neyman cost (WhShTot) of the four solvers with h = 3 on the examples of Section 9. 'AIC family' is the distribution chosen by AIC, which the DP optimises. 'DP gap' is the DP cost above the exact optimum. Lower WhShTot means a more efficient design.")
+             caption = "Table 1: Objective function (WhShTot) of the four solvers with h = 3 on the examples of Section 9. 'AIC family' is the distribution chosen by AIC, which the DP optimises. 'DP gap' is the DP cost above the exact optimum. Lower WhShTot means a more efficient design.")
 
 ## ----eval=FALSE---------------------------------------------------------------
 # library(MASS); library(triangle); library(actuar)

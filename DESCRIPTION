@@ -1,8 +1,8 @@
 Package: stratifyR
 Type: Package
 Title: Optimal Stratification of Univariate Populations
-Version: 2.0-3
-Date: 2026-10-16
+Version: 2.0-4
+Date: 2026-10-24
 Authors@R: c(
     person("Karuna G.", "Reddy",
            email   = "karuna.reddy@auckland.ac.nz",
@@ -50,10 +50,10 @@ Suggests: shiny, bslib, DT, readxl, stratification, plotly (>= 4.10.0),
 VignetteBuilder: knitr
 RoxygenNote: 7.3.1
 NeedsCompilation: no
-Packaged: 2026-10-17 22:21:30 UTC; karunareddy
+Packaged: 2026-10-24 23:11:44 UTC; karunareddy
 Author: Karuna G. Reddy [aut, cre] (ORCID:
     <https://orcid.org/0000-0002-9467-4668>),
   M. G. M. Khan [aut]
 Maintainer: Karuna G. Reddy <karuna.reddy@auckland.ac.nz>
 Repository: CRAN
-Date/Publication: 2026-10-17 23:10:02 UTC
+Date/Publication: 2026-10-25 00:00:02 UTC

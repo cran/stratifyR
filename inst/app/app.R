@@ -1,11 +1,9 @@
 # ==============================================================================
-# stratifyR 2.0 — Professional Shiny Application
+# stratifyR 2.0 - Professional Shiny Application
 # Optimal Survey Stratification
 #
 # Required packages:
 #   install.packages(c("shiny", "bslib", "DT", "plotly", "readxl"))
-#   install.packages("~/Desktop/strataVerse/stratifyR 2.0/stratifyR 2.0-3",
-#                    repos = NULL, type = "source")
 # ==============================================================================
 
 library(shiny)
@@ -16,8 +14,8 @@ library(stratifyR)
 # Version shown in the header badge, read from the installed package
 # (e.g. "2.0-2"), so it always matches the package that is running.
 .app_version <- tryCatch(utils::packageDescription("stratifyR")$Version,
-                         error = function(e) "2.0-3")
-if (is.null(.app_version) || is.na(.app_version)) .app_version <- "2.0-3"
+                         error = function(e) "2.0-4")
+if (is.null(.app_version) || is.na(.app_version)) .app_version <- "2.0-4"
 
 has_plotly  <- requireNamespace("plotly",  quietly = TRUE)
 has_readxl  <- requireNamespace("readxl",  quietly = TRUE)
@@ -30,10 +28,10 @@ if (has_ggplot2) library(ggplot2)
 # ==============================================================================
 
 builtin_choices <- c(
-  "Anaemia — Iron"         = "anaemia|Iron",
-  "HIES — Income"          = "hies|Income",
-  "Math — Final Marks"     = "math|final_marks",
-  "Sugarcane — Production" = "sugarcane|Production"
+  "Anaemia - Iron"         = "anaemia|Iron",
+  "HIES - Income"          = "hies|Income",
+  "Math - Final Marks"     = "math|final_marks",
+  "Sugarcane - Production" = "sugarcane|Production"
 )
 
 distr_choices <- c(
@@ -321,12 +319,40 @@ app_css <- "
   color: #1E293B !important;
   overflow: visible !important;
 }
-/* Ensure select dropdowns always render above everything */
+/* Select dropdowns: solid background, every option readable, scroll when long */
 .selectize-dropdown,
-.dropdown-menu,
-.selectize-dropdown-content {
+.dropdown-menu {
   z-index: 99999 !important;
   position: absolute !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid #CBD5E1 !important;
+  border-radius: 6px !important;
+  box-shadow: 0 6px 18px rgba(27,58,92,0.18) !important;
+  opacity: 1 !important;
+}
+.selectize-dropdown-content {
+  max-height: 260px !important;
+  overflow-y: auto !important;
+  background: #FFFFFF !important;
+}
+.selectize-dropdown .option,
+.selectize-dropdown-content .option {
+  background: #EEF4FB !important;
+  color: #1E293B !important;
+  opacity: 1 !important;
+  padding: 7px 10px !important;
+  font-size: 0.83rem !important;
+  border-bottom: 1px solid #DCE6F2 !important;
+  cursor: pointer;
+}
+.selectize-dropdown .option:last-child { border-bottom: none !important; }
+.selectize-dropdown .option.active,
+.selectize-dropdown .option:hover {
+  background: #1B3A5C !important;
+  color: #FFFFFF !important;
+}
+.selectize-dropdown .option.selected {
+  font-weight: 700 !important;
 }
 /* Ensure all form controls inside accordion are fully visible */
 .accordion-body .form-select,
@@ -379,7 +405,7 @@ app_css <- "
   text-align: center;
 }
 
-/* ── Shiny withProgress modal — custom theme ─────────────────────────────── */
+/* ── Shiny withProgress modal - custom theme ─────────────────────────────── */
 #shiny-progress-container {
   position: fixed !important;
   bottom: 24px !important;
@@ -1003,18 +1029,27 @@ ui <- page_sidebar(
         ),
 
         selectInput("solver", "Solver",
-          choices  = c("DP — Dynamic Programming on the fitted model (default)" = "dp",
-                       "EXACT — Dynamic Programming on the data"  = "exact",
-                       "COBYLA — Fast multi-start search"         = "cobyla",
-                       "GLOBAL — DIRECT-L + local refinement"     = "global"),
+          choices  = c("DP - Dynamic Programming on the fitted model (default)" = "dp",
+                       "EXACT - Dynamic Programming on the data"  = "exact",
+                       "COBYLA - Fast multi-start search"         = "cobyla",
+                       "GLOBAL - DIRECT-L + local refinement"     = "global"),
           selected = "dp",
           selectize = FALSE),
 
+        # v2.0-4: options of the exact solver (data sources only)
+        conditionalPanel("input.solver == 'exact' && input.data_source != 'distr'",
+          checkboxInput("opt_fpc", "Minimise the full variance (with fpc)", value = FALSE),
+          checkboxInput("opt_takeall", "Allow a take-all top stratum", value = FALSE),
+          div(style = "font-size:0.75rem; color:#94A3B8; margin:-4px 0 6px 0;",
+            "Useful when n is a large part of N or a few units are very large. ",
+            "The take-all option tries every size of a fully sampled top stratum.")
+        ),
+
         div(style = "font-size:0.75rem; color:#94A3B8; margin-top:2px;",
-          tags$strong("DP"), " — globally optimal on a fine grid for the fitted distribution. ",
-          tags$strong("EXACT"), " — globally optimal for the data themselves (data sources only). ",
-          tags$strong("COBYLA"), " — fast search on the data, usually within a fraction of a percent of EXACT. ",
-          tags$strong("GLOBAL"), " — DIRECT-L global search followed by local refinement; a second opinion for small H.")
+          tags$strong("DP"), " - globally optimal on a fine grid for the fitted distribution. ",
+          tags$strong("EXACT"), " - globally optimal for the data themselves (data sources only). ",
+          tags$strong("COBYLA"), " - fast search on the data, usually within a fraction of a percent of EXACT. ",
+          tags$strong("GLOBAL"), " - DIRECT-L global search followed by local refinement; a second opinion for small L.")
       ),
 
       # ── 3. Plot Options ──────────────────────────────────────────────────────
@@ -1059,7 +1094,7 @@ ui <- page_sidebar(
 )
 
 # ==============================================================================
-# compare_designs — local implementation (does not require package reinstall)
+# compare_designs - local implementation (does not require package reinstall)
 # ==============================================================================
 
 .S2_from_strata_app <- function(object) {
@@ -1143,7 +1178,7 @@ compare_designs <- function(object, n = NULL) {
 }
 
 # ==============================================================================
-# Boundary Methods Comparison — helpers
+# Boundary Methods Comparison - helpers
 # ==============================================================================
 
 # ΣWₕSₕ from raw sorted data + full boundary vector (length H+1)
@@ -1404,12 +1439,14 @@ server <- function(input, output, session) {
               "global" = "Running DIRECT-L global search + local refinement…",
               "exact"  = "Running Dynamic Programming on the data…"))
 
-          res <- strata.data(
-            data   = y,
-            h      = h,
-            n      = n_samp,
-            method = method
-          )
+          # v2.0-4: fpc / takeall options of the exact solver
+          ex_opts <- list()
+          if (identical(method, "exact") &&
+              all(c("fpc", "takeall") %in% names(formals(strata.data))))
+            ex_opts <- list(fpc     = isTRUE(input$opt_fpc),
+                            takeall = isTRUE(input$opt_takeall))
+          res <- do.call(strata.data,
+                         c(list(data = y, h = h, n = n_samp, method = method), ex_opts))
         }
 
         shiny::incProgress(0.60, detail = "Computing sample allocations…")
@@ -1435,7 +1472,7 @@ server <- function(input, output, session) {
           div(class = "progress-shimmer")),
         div(class = "progress-label",
           switch(input$solver,
-            "dp"     = "DP solver: O(h·N²) — larger strata counts take longer",
+            "dp"     = "DP solver: O(h·N²) - larger strata counts take longer",
             "cobyla" = "COBYLA: gradient-free boundary search (20 starts)…",
             "global" = "GLOBAL: DIRECT-L global phase + local refinement…",
             "exact"  = "EXACT: Dynamic Programming over every cut point in the data…"))
@@ -1481,8 +1518,8 @@ server <- function(input, output, session) {
       div(class = "intro-hero-sub",
         "Stratified random sampling divides a heterogeneous population into",
         " homogeneous sub-groups (strata) before sampling.",
-        " Choosing boundaries optimally — rather than arbitrarily —",
-        " can reduce sampling variance by a factor of 2–5× for the same",
+        " Choosing boundaries optimally - rather than arbitrarily -",
+        " can reduce sampling variance by a factor of 2-5× for the same",
         " total sample size, directly lowering survey costs.")
     ),
 
@@ -1497,8 +1534,8 @@ server <- function(input, output, session) {
         div(class = "intro-math",
           withMathJax("\\( V(\\bar{y}_{SRS}) = \\dfrac{S^2}{n} \\)")),
         tags$p("When the population is ",
-          tags$strong("heterogeneous"), " — for example, a skewed income",
-          " distribution where most values are low but a few are very large —",
+          tags$strong("heterogeneous"), " - for example, a skewed income",
+          " distribution where most values are low but a few are very large -",
           " a small sample may miss the rare high-value units entirely,",
           " producing a biased or imprecise estimate.",
           " Cochran (1977, Ch. 5) showed that stratification systematically",
@@ -1510,18 +1547,18 @@ server <- function(input, output, session) {
     div(class = "intro-section",
       div(class = "intro-section-title",
         div(class = "num-badge", "2"),
-        "Cochran's Framework — Stratified Random Sampling"),
+        "Cochran's Framework - Stratified Random Sampling"),
       div(class = "intro-body",
         tags$p("Divide the population of size ", tags$em("N"),
-          " into ", tags$em("H"), " strata with sizes ",
-          tags$em("N₁, …, N_H"), ".",
+          " into ", tags$em("L"), " strata with sizes ",
+          tags$em("N₁, …, N_L"), ".",
           " Draw independent samples of sizes ",
           tags$em("n₁, …, n_H"), " from each stratum",
           " (with ∑nₕ = n).",
           " The stratified estimator of the population mean is:"),
         div(class = "intro-math",
           withMathJax(
-            "\\( \\bar{y}_{st} = \\sum_{h=1}^{H} W_h\\,\\bar{y}_h \\)")),
+            "\\( \\bar{y}_{st} = \\sum_{h=1}^{L} W_h\\,\\bar{y}_h \\)")),
         tags$p("where ", tags$em("Wₕ = Nₕ/N"),
           " is the stratum weight and ",
           tags$em("ȳₕ"), " is the stratum sample mean.",
@@ -1529,7 +1566,7 @@ server <- function(input, output, session) {
           " (", tags$em("nₕ ∝ Wₕ Sₕ"), ") achieves:"),
         div(class = "intro-math",
           withMathJax(
-            "\\( V^*(\\bar{y}_{st}) = \\frac{\\left(\\sum_{h=1}^{H} W_h S_h\\right)^2}{n} \\)")),
+            "\\( V^*(\\bar{y}_{st}) = \\frac{\\left(\\sum_{h=1}^{L} W_h S_h\\right)^2}{n} \\)")),
         div(class = "intro-key-result",
           "Key insight: minimising V*(ȳ_st) for fixed n is equivalent to",
           " minimising ΣWₕSₕ by choosing the strata boundaries. This is",
@@ -1543,11 +1580,11 @@ server <- function(input, output, session) {
         div(class = "num-badge", "3"),
         "Constructing Optimal Strata Boundaries"),
       div(class = "intro-body",
-        tags$p("Given the stratum weight–SD product ", tags$em("WₕSₕ"),
+        tags$p("Given the stratum weight-SD product ", tags$em("WₕSₕ"),
           ", the boundary construction problem is:"),
         div(class = "intro-math",
           withMathJax(
-            "\\[ \\min_{b_1,\\ldots,b_{H-1}} \\sum_{h=1}^{H} W_h(b)\\,S_h(b) \\]")),
+            "\\[ \\min_{b_1,\\ldots,b_{L-1}} \\sum_{h=1}^{L} W_h(b)\\,S_h(b) \\]")),
         tags$p(tags$strong("Dalenius (1950)"),
           " proved the exact optimality conditions.",
           " ", tags$strong("Dalenius & Hodges (1959)"),
@@ -1566,11 +1603,11 @@ server <- function(input, output, session) {
     div(class = "intro-section",
       div(class = "intro-section-title",
         div(class = "num-badge", "4"),
-        "Worked Example — Anaemia Survey (Iron, g/dL)"),
+        "Worked Example - Anaemia Survey (Iron, g/dL)"),
       div(class = "intro-body",
         tags$p("Population: N = 2,703 patients. Survey variable: serum iron.",
           " Fitted distribution: Log-Normal. Sample size: n = 300.",
-          " Below are the H = 3 optimal strata from stratifyR:"),
+          " Below are the L = 3 optimal strata from stratifyR:"),
         tags$table(class = "intro-example-table",
           tags$thead(tags$tr(
             tags$th("Stratum"), tags$th("Interval (g/dL)"),
@@ -1587,25 +1624,25 @@ server <- function(input, output, session) {
               tags$td("S3"), tags$td("[22.6, 68.0]"),
               tags$td("0.210"), tags$td("7.86"), tags$td("1.651"), tags$td("109")),
             tags$tr(
-              tags$td("Total"), tags$td("—"),
-              tags$td("1.000"), tags$td("—"),
+              tags$td("Total"), tags$td("-"),
+              tags$td("1.000"), tags$td("-"),
               tags$td("3.736"), tags$td("300"))
           )
         ),
         div(class = "intro-gain-box",
           div(class = "intro-gain-card",
             div(class = "gval", "0.0465"),
-            div(class = "glbl", "V*(ȳ) — stratified")),
+            div(class = "glbl", "V*(ȳ) - stratified")),
           div(class = "intro-gain-card",
             div(class = "gval", "0.2180"),
-            div(class = "glbl", "V(ȳ) — SRS equivalent")),
+            div(class = "glbl", "V(ȳ) - SRS equivalent")),
           div(class = "intro-gain-card highlight",
             div(class = "gval", "4.7×"),
             div(class = "glbl", "Efficiency gain over SRS"))
         ),
         tags$p(style = "margin-top:0.8rem; font-size:0.83rem; color:#64748B;",
           "Equivalently: to achieve the same precision as 300 stratified observations,",
-          " you would need ~1,410 observations under SRS — a 79% cost saving.")
+          " you would need ~1,410 observations under SRS - a 79% cost saving.")
       )
     ),
 
@@ -1621,7 +1658,7 @@ server <- function(input, output, session) {
             " or specify a parametric distribution directly."),
           div(class = "intro-step",
             tags$span(class = "step-num", "② Settings"),
-            "Set the number of strata H, sample size n, and solver.",
+            "Set the number of strata L, sample size n, and solver.",
             " DP gives the exact global optimum.",
             " DP is optimal on a fine grid for the fitted distribution;",
             " EXACT is optimal for the data themselves; COBYLA is a fast search",
@@ -1634,14 +1671,14 @@ server <- function(input, output, session) {
             tags$span(class = "step-num", "④ Explore"),
             "Inspect results across eight analytical tabs:",
             tags$ul(style = "margin:0.4rem 0 0 0.5rem; padding-left:1.2rem;",
-              tags$li(tags$strong("Optimal Boundaries"), " — summary table, strata statistics, and 2D density plot."),
-              tags$li(tags$strong("Design Comparison"), " — benchmark stratified vs SRS and proportional allocation."),
-              tags$li(tags$strong("H Selector"), " — plot ΣWₕSₕ and V*(n) against H to choose the number of strata."),
-              tags$li(tags$strong("Boundary Methods"), " — compare stratifyR against geometric, cumulative √f, and Lavallée-Hidiroglou boundary construction methods."),
-              tags$li(tags$strong("Sample Size"), " — back-calculate the n required to hit a target SE or CV under Neyman, proportional, and SRS."),
-              tags$li(tags$strong("Allocation"), " — compare Neyman, proportional, and equal allocation side-by-side for fixed boundaries."),
-              tags$li(tags$strong("Cost-Constrained"), " — find the variance-minimising allocation subject to a fieldwork budget and per-stratum costs."),
-              tags$li(tags$strong("Visualise"), " — 2D density, 3D surface, and interactive boundary explorer.")
+              tags$li(tags$strong("Optimal Boundaries"), " - summary table, strata statistics, and 2D density plot."),
+              tags$li(tags$strong("Design Comparison"), " - benchmark stratified vs SRS and proportional allocation."),
+              tags$li(tags$strong("Strata Count"), " - plot ΣWₕSₕ and V*(n) against L to choose the number of strata."),
+              tags$li(tags$strong("Boundary Methods"), " - compare stratifyR against geometric, cumulative √f, and Lavallée-Hidiroglou boundary construction methods."),
+              tags$li(tags$strong("Sample Size"), " - back-calculate the n required to hit a target SE or CV under Neyman, proportional, and SRS."),
+              tags$li(tags$strong("Allocation"), " - compare Neyman, proportional, and equal allocation side-by-side for fixed boundaries."),
+              tags$li(tags$strong("Cost-Constrained"), " - find the variance-minimising allocation subject to a fieldwork budget and per-stratum costs."),
+              tags$li(tags$strong("Visualise"), " - 2D density, 3D surface, and interactive boundary explorer.")
             )),
           div(class = "intro-step",
             tags$span(class = "step-num", "⑤ Export"),
@@ -1656,21 +1693,21 @@ server <- function(input, output, session) {
     div(class = "intro-ref",
       tags$strong("References:"),
       " Cochran, W.G. (1977). ",
-      tags$em("Sampling Techniques"), ", 3rd ed. Wiley. —",
+      tags$em("Sampling Techniques"), ", 3rd ed. Wiley. -",
       " Neyman, J. (1934). On the two different aspects of the representative method.",
-      " ", tags$em("JRSS"), " 97, 558–625. —",
+      " ", tags$em("JRSS"), " 97, 558-625. -",
       " Dalenius, T. & Hodges, J.L. (1959). Minimum variance stratification.",
-      " ", tags$em("JASA"), " 54, 88–101. —",
+      " ", tags$em("JASA"), " 54, 88-101. -",
       " Khan, M.G.M. et al. (2008). Determining optimum strata boundaries using",
-      " mathematical programming. ", tags$em("Survey Methodology"), " 34(2), 91–102. —",
+      " mathematical programming. ", tags$em("Survey Methodology"), " 34(2), 91-102. -",
       " Gunning, P. & Horgan, J.M. (2004). A new algorithm for the construction of",
       " stratum boundaries in skewed populations.",
-      " ", tags$em("Survey Methodology"), " 30(2), 159–166. —",
+      " ", tags$em("Survey Methodology"), " 30(2), 159-166. -",
       " Lavallée, P. & Hidiroglou, M.A. (1988). On the stratification of skewed",
-      " populations. ", tags$em("Survey Methodology"), " 14(1), 33–43. —",
+      " populations. ", tags$em("Survey Methodology"), " 14(1), 33-43. -",
       " Baillargeon, S. & Rivest, L.-P. (2011). The construction of stratified designs",
       " in R with the package stratification.",
-      " ", tags$em("Survey Methodology"), " 37(2), 109–129. —",
+      " ", tags$em("Survey Methodology"), " 37(2), 109-129. -",
       " Hansen, M.H., Hurwitz, W.N. & Madow, W.G. (1953). ",
       tags$em("Sample Survey Methods and Theory"), ". Wiley."
     )
@@ -1685,13 +1722,13 @@ server <- function(input, output, session) {
         div(class = "empty-icon", "\U0001F4CA"),
         div(class = "empty-title", "No results yet"),
         div(class = "empty-sub",
-          "Run Stratification first — results will appear here."))
+          "Run Stratification first - results will appear here."))
 
     tagList(
       # Metric strip (only when results exist)
       if (!is.null(res)) {
         gap_lbl <- if (!is.null(res$optimality_gap) && !is.na(res$optimality_gap))
-                     formatC(res$optimality_gap, format = "e", digits = 2) else "N/A (DP)"
+                     formatC(res$optimality_gap, format = "e", digits = 2) else "N/A"
         div(class = "metrics-row",
           div(class = "metric-card",
             div(class = "metric-value", nrow(res$h)),
@@ -1704,7 +1741,15 @@ server <- function(input, output, session) {
             div(class = "metric-label", "ΣWₕSₕ")),
           div(class = "metric-card",
             div(class = "metric-value", gap_lbl),
-            div(class = "metric-label", "Optimality gap"))
+            div(class = "metric-label", "Optimality gap")),
+          if (!is.null(res$variance) && is.finite(res$variance))
+            div(class = "metric-card",
+              div(class = "metric-value", formatC(res$variance, format = "e", digits = 3)),
+              div(class = "metric-label", "Variance (with fpc)")),
+          if (!is.null(res$takeall) && isTRUE(res$takeall > 0))
+            div(class = "metric-card",
+              div(class = "metric-value", res$takeall),
+              div(class = "metric-label", "Take-all units"))
         )
       },
 
@@ -1721,7 +1766,7 @@ server <- function(input, output, session) {
           else uiOutput("ui_design_comp")),
 
         # ── 3. H Selector ────────────────────────────────────────────────────
-        nav_panel(tagList(icon("layer-group"), " Strata Count (H)"),
+        nav_panel(tagList(icon("layer-group"), " Strata Count (L)"),
           uiOutput("ui_h_selector")),
 
         # ── 4. Boundary Methods Comparison ───────────────────────────────────
@@ -1781,7 +1826,7 @@ server <- function(input, output, session) {
     is_data    <- !is.null(res0$data_internal) && length(res0$data_internal) >= 2L
 
     # ── For the data pathway, extract the already-fitted distribution from res0
-    # so we can use strata.distr() in the loop — this avoids re-running the
+    # so we can use strata.distr() in the loop - this avoids re-running the
     # 9-distribution AIC selection on every H iteration (the main cause of
     # slowness for heavy-tailed data like Cauchy).
     use_cached_distr <- FALSE
@@ -1801,10 +1846,10 @@ server <- function(input, output, session) {
                           !is.null(cached_initval) && !is.null(cached_dist)
     }
 
-    withProgress(message = "H-Selector", value = 0, {
+    withProgress(message = "Strata Count", value = 0, {
       rows <- lapply(seq_len(max_H), function(h_i) {
         incProgress(1 / max_H,
-                    detail = sprintf("Computing H = %d of %d…", h_i, max_H))
+                    detail = sprintf("Computing L = %d of %d…", h_i, max_H))
         tryCatch({
           if (use_cached_distr) {
             # Fast path: reuse the already-fitted distribution from the main run.
@@ -1821,7 +1866,7 @@ server <- function(input, output, session) {
               N       = N_use,
               method  = "cobyla")
           } else if (is_data) {
-            # Fallback: no cached fit — run strata.data() as before
+            # Fallback: no cached fit - run strata.data() as before
             pop   <- res0$data_internal
             N_arg <- if (!is.null(res0$N) && res0$N > 0 && res0$N != length(pop))
                        res0$N else NULL
@@ -1878,7 +1923,7 @@ server <- function(input, output, session) {
 
     results <- withProgress(message = "Boundary Methods Comparison", value = 0, {
 
-      # ── 1. DP (stratifyR) — recompute with same formula as other methods ──
+      # ── 1. DP (stratifyR) - recompute with same formula as other methods ──
       incProgress(0.1, detail = "DP (stratifyR)…")
       int_osb   <- res0$OSB[res0$OSB > x_lo & res0$OSB < x_hi]
       dp_full_b <- c(x_lo, int_osb, x_hi)
@@ -1890,7 +1935,7 @@ server <- function(input, output, session) {
         error = function(e) res0$WhShTot)   # fallback to stored value
       solver_lbl <- toupper(if (!is.null(res0$method) && nzchar(res0$method)) res0$method else "DP")
       dp_entry <- list(
-        method     = sprintf("%s — stratifyR", solver_lbl),
+        method     = sprintf("%s - stratifyR", solver_lbl),
         WhSh       = dp_ws,
         V          = dp_ws^2 / n_val,
         is_optimal = TRUE,
@@ -1912,7 +1957,7 @@ server <- function(input, output, session) {
         V          = if (is.finite(geom_ws)) geom_ws^2 / n_val else NA_real_,
         is_optimal = FALSE,
         converged  = geom_ok && is.finite(geom_ws),
-        note       = "bᵢ = x_lo × (x_hi/x_lo)^(i/H)  —  log-equal-width spacing"
+        note       = "bᵢ = x_lo × (x_hi/x_lo)^(i/L)  -  log-equal-width spacing"
       )
 
       # ── 3. Cumulative √f (Dalenius & Hodges 1959) ─────────────────────────
@@ -1929,7 +1974,7 @@ server <- function(input, output, session) {
         V          = if (is.finite(dh_ws)) dh_ws^2 / n_val else NA_real_,
         is_optimal = FALSE,
         converged  = dh_ok && is.finite(dh_ws),
-        note       = "Divide ∪√f(y)dy into H equal parts"
+        note       = "Divide ∪√f(y)dy into L equal parts"
       )
 
       # ── 4. Lavallée-Hidiroglou (stratification package) ───────────────────
@@ -1962,14 +2007,14 @@ server <- function(input, output, session) {
         }
         if (is.null(y_lh) || length(y_lh) < H * 5L) stop("Insufficient data for L-H")
 
-        # strata.LH requires strictly positive data — shift if needed
+        # strata.LH requires strictly positive data - shift if needed
         lh_shift <- 0
         if (min(y_lh, na.rm = TRUE) <= 0) {
           lh_shift <- abs(min(y_lh, na.rm = TRUE)) + 1
           y_lh     <- y_lh + lh_shift
         }
 
-        # strata.LH(x, Ls = H, n = ...) — Ls = strata count, n = sample size
+        # strata.LH(x, Ls = H, n = ...) - Ls = strata count, n = sample size
         lh_out <- suppressMessages(suppressWarnings(
           stratification::strata.LH(x = y_lh, Ls = H, n = n_val)
         ))
@@ -2024,7 +2069,7 @@ server <- function(input, output, session) {
 
     fmt_v  <- function(v) formatC(v, format = "e", digits = 4)
     fmt_se <- function(v) formatC(v, format = "f", digits = 6)
-    fmt_deff <- function(v) if (is.finite(v)) sprintf("%.4f", v) else "—"
+    fmt_deff <- function(v) if (is.finite(v)) sprintf("%.4f", v) else "-"
 
     tagList(
       # ── Headline banner ────────────────────────────────────────────────────
@@ -2078,20 +2123,20 @@ server <- function(input, output, session) {
         tags$tbody(
           tags$tr(
             tags$td("Simple Random Sampling"),
-            tags$td("—"),
+            tags$td("-"),
             tags$td(fmt_v(cd$V_srs)),
             tags$td(fmt_se(cd$SE_srs)),
             tags$td("1.0000  (reference)"),
             tags$td("1.00×")),
           tags$tr(class = "dc-row-prop",
-            tags$td("Stratified — Proportional"),
+            tags$td("Stratified - Proportional"),
             tags$td(HTML("n<sub>h</sub> ∝ W<sub>h</sub>")),
             tags$td(fmt_v(cd$V_prop)),
             tags$td(fmt_se(cd$SE_prop)),
             tags$td(fmt_deff(cd$deff_prop)),
             tags$td(sprintf("%.2f×", cd$V_srs / cd$V_prop))),
           tags$tr(class = "dc-row-opt",
-            tags$td("Stratified — Neyman (optimal)"),
+            tags$td("Stratified - Neyman (optimal)"),
             tags$td(HTML("n<sub>h</sub> ∝ W<sub>h</sub>S<sub>h</sub>")),
             tags$td(fmt_v(cd$V_opt)),
             tags$td(fmt_se(cd$SE_opt)),
@@ -2107,11 +2152,11 @@ server <- function(input, output, session) {
             " line-height:1.6;"),
         tags$strong("How to read this: "),
         sprintf(
-          paste0("With H = %d optimal strata and Neyman allocation (n = %d), ",
+          paste0("With L = %d optimal strata and Neyman allocation (n = %d), ",
                  "the variance of the estimated mean is %.2f× smaller than under SRS ",
                  "and %.2f× smaller than under proportional allocation. ",
                  "To achieve the same precision with SRS alone you would need ",
-                 "n = %s observations — a %.1f%% cost saving."),
+                 "n = %s observations - a %.1f%% cost saving."),
           cd$H, cd$n,
           cd$gain_over_srs, cd$gain_over_prop,
           format(cd$n_srs_equiv, big.mark = ","), cd$pct_saving),
@@ -2141,9 +2186,9 @@ server <- function(input, output, session) {
       div(
         div(class = "bmc-banner-title", "Boundary Methods Comparison"),
         div(class = "bmc-banner-text",
-          sprintf("Compares four boundary construction strategies for H = %d strata, n = %d.", H, n_val),
+          sprintf("Compares four boundary construction strategies for L = %d strata, n = %d.", H, n_val),
           " ΣWₕSₕ and V*(n) are evaluated under Neyman allocation for each method.",
-          sprintf(" stratifyR (%s) is the reference — all gaps are relative to it.",
+          sprintf(" stratifyR (%s) is the reference - all gaps are relative to it.",
                   toupper(if (!is.null(res0$method) && nzchar(res0$method)) res0$method else "DP")))
       ),
       actionButton("run_bmc",
@@ -2178,15 +2223,15 @@ server <- function(input, output, session) {
       ok    <- df$ok[i]
       cls   <- if (is_dp) "bmc-row-dp" else if (!ok) "bmc-row-fail" else ""
       ws_str <- if (is.finite(df$WhSh[i]))
-                  formatC(df$WhSh[i], format = "f", digits = 5) else "—"
+                  formatC(df$WhSh[i], format = "f", digits = 5) else "-"
       v_str  <- if (is.finite(df$V[i]))
-                  formatC(df$V[i], format = "e", digits = 4) else "—"
+                  formatC(df$V[i], format = "e", digits = 4) else "-"
       gap_str <- if (is_dp) "reference"
                  else if (is.finite(df$gap_pct[i])) sprintf("%+.2f%%", df$gap_pct[i])
-                 else "—"
+                 else "-"
       re_str  <- if (is_dp) "1.000×"
                  else if (is.finite(df$RE[i])) sprintf("%.3f×", df$RE[i])
-                 else "—"
+                 else "-"
       err_msg <- df$err_msg[i]
       has_err <- nzchar(err_msg)
       badge   <- if (is_dp)  tags$span(class = "bmc-badge-opt",  "★ optimal")
@@ -2220,7 +2265,7 @@ server <- function(input, output, session) {
         tags$tbody(tbl_rows)
       ),
       div(class = "hsel-note",
-        "All methods evaluated at the same H and n. Boundaries differ; allocation is Neyman-optimal for each set of boundaries."),
+        "All methods evaluated at the same L and n. Boundaries differ; allocation is Neyman-optimal for each set of boundaries."),
 
       # ── Method explanations ────────────────────────────────────────────────
       div(style = "margin-top: 1.4rem;",
@@ -2229,21 +2274,21 @@ server <- function(input, output, session) {
           div(class = "intro-section-title",
             div(class = "num-badge", "1"), "Methods compared"),
           div(class = "intro-body",
-            tags$p(tags$strong("DP / COBYLA / GLOBAL — stratifyR:"),
+            tags$p(tags$strong("DP / COBYLA / GLOBAL - stratifyR:"),
               " Globally optimal boundaries via Dynamic Programming, COBYLA, or GLOBAL (Khan et al. 2008).",
               " DP guarantees the global optimum on a grid for the fitted distribution;",
               " COBYLA is a fast gradient-free alternative;",
               " EXACT runs Dynamic Programming on the data and gives the true optimum for the data;",
-              " GLOBAL (DIRECT-L + local refinement) is a second opinion for small H.",
-              " This is the reference — all other methods are compared against it."),
+              " GLOBAL (DIRECT-L + local refinement) is a second opinion for small L.",
+              " This is the reference - all other methods are compared against it."),
             tags$p(tags$strong("Geometric (Gunning & Horgan 2004):"),
               " Places boundaries at geometrically spaced values:",
-              " bᵢ = x_lo × (x_hi / x_lo)^(i/H).",
+              " bᵢ = x_lo × (x_hi / x_lo)^(i/L).",
               " Equivalent to equal-width stratification in log space.",
               " Near-optimal for Pareto-type and strongly right-skewed distributions."),
-            tags$p(tags$strong("Cumulative √f — Dalenius & Hodges (1959):"),
+            tags$p(tags$strong("Cumulative √f - Dalenius & Hodges (1959):"),
               " Divides the cumulative square root of the density function, ∫√f(y) dy,",
-              " into H equal parts and places boundaries at the division points.",
+              " into L equal parts and places boundaries at the division points.",
               " A classical and widely cited approximation that works well across many",
               " distribution families."),
             tags$p(tags$strong("Lavallée-Hidiroglou (1988):"),
@@ -2261,7 +2306,7 @@ server <- function(input, output, session) {
             div(class = "num-badge", "2"), "How to read the results"),
           div(class = "intro-body",
             tags$p(
-              "All four methods produce H-1 interior boundary points.",
+              "All four methods produce L-1 interior boundary points.",
               " For each set of boundaries, Neyman-optimal allocation is applied using",
               " the same total sample size n, and ΣWₕSₕ is recomputed from scratch.",
               " A smaller ΣWₕSₕ means lower variance for the same n."),
@@ -2288,19 +2333,19 @@ server <- function(input, output, session) {
             div(class = "intro-ref",
               tags$strong("DP method: "),
               "Khan, M.G.M., Nand, N., & Ahmad, N. (2008). Determining optimum strata boundaries using mathematical programming. ",
-              tags$em("Survey Methodology"), " 34(2), 91–102.", tags$br(),
+              tags$em("Survey Methodology"), " 34(2), 91-102.", tags$br(),
               tags$strong("Geometric method: "),
               "Gunning, P. & Horgan, J.M. (2004). A new algorithm for the construction of stratum boundaries in skewed populations. ",
-              tags$em("Survey Methodology"), " 30(2), 159–166.", tags$br(),
+              tags$em("Survey Methodology"), " 30(2), 159-166.", tags$br(),
               tags$strong("Cumulative √f: "),
               "Dalenius, T. & Hodges, J.L. (1959). Minimum variance stratification. ",
-              tags$em("Journal of the American Statistical Association"), " 54, 88–101.", tags$br(),
+              tags$em("Journal of the American Statistical Association"), " 54, 88-101.", tags$br(),
               tags$strong("Lavallée-Hidiroglou: "),
               "Lavallée, P. & Hidiroglou, M. (1988). On the stratification of skewed populations. ",
-              tags$em("Survey Methodology"), " 14(1), 33–43.", tags$br(),
+              tags$em("Survey Methodology"), " 14(1), 33-43.", tags$br(),
               tags$strong("R package stratification: "),
               "Baillargeon, S. & Rivest, L.-P. (2011). The construction of stratified designs in R with the package stratification. ",
-              tags$em("Survey Methodology"), " 37(1), 53–65."
+              tags$em("Survey Methodology"), " 37(1), 53-65."
             )
           )
         )
@@ -2385,8 +2430,8 @@ server <- function(input, output, session) {
         tags$summary("Methodology & References"),
         div(class = "method-body",
           tags$p(tags$strong("What this does:"),
-            " Given a target precision — expressed as a standard error SE(ȳ) or a coefficient",
-            " of variation CV(ȳ) = SE(ȳ)/|ȳ| × 100% — this tab back-calculates the minimum",
+            " Given a target precision - expressed as a standard error SE(ȳ) or a coefficient",
+            " of variation CV(ȳ) = SE(ȳ)/|ȳ| × 100% - this tab back-calculates the minimum",
             " sample size required under three designs."),
           tags$p(tags$strong("Neyman allocation"), " is optimal: it distributes the sample",
             " proportionally to stratum size and within-stratum variability (WₕSₕ), yielding",
@@ -2405,11 +2450,11 @@ server <- function(input, output, session) {
           div(class = "method-ref",
             tags$strong("References: "),
             "Cochran, W.G. (1977). ",
-            tags$em("Sampling Techniques"), ", 3rd ed. Wiley. §5.4–5.5. — ",
+            tags$em("Sampling Techniques"), ", 3rd ed. Wiley. §5.4-5.5. - ",
             "Lohr, S.L. (2010). ",
-            tags$em("Sampling: Design and Analysis"), ", 2nd ed. Brooks/Cole. §4.4. — ",
+            tags$em("Sampling: Design and Analysis"), ", 2nd ed. Brooks/Cole. §4.4. - ",
             "Neyman, J. (1934). On the two different aspects of the representative method.",
-            " ", tags$em("Journal of the Royal Statistical Society"), ", 97(4), 558–625.")
+            " ", tags$em("Journal of the Royal Statistical Society"), ", 97(4), 558-625.")
         )
       )
     )
@@ -2474,10 +2519,10 @@ server <- function(input, output, session) {
         div(class = "dc-cards", style = "flex:1; align-items:flex-start;",
           div(class = "dc-card",
             div(class = "dc-val", format(n_prop, big.mark=",")),
-            div(class = "dc-lbl", "n — Proportional")),
+            div(class = "dc-lbl", "n - Proportional")),
           div(class = "dc-card",
             div(class = "dc-val", format(n_srs, big.mark=",")),
-            div(class = "dc-lbl", "n — SRS")),
+            div(class = "dc-lbl", "n - SRS")),
           div(class = "dc-card dc-highlight",
             div(class = "dc-val", sprintf("%.1f%%", save_srs)),
             div(class = "dc-lbl", "Saving vs SRS")),
@@ -2630,7 +2675,7 @@ server <- function(input, output, session) {
         div(
           div(class = "bmc-banner-title", "Allocation Schemes Explorer"),
           div(class = "bmc-banner-text",
-            sprintf("Compares Neyman, proportional, and equal allocation for H = %d strata, n = %d.", H, n_val),
+            sprintf("Compares Neyman, proportional, and equal allocation for L = %d strata, n = %d.", H, n_val),
             " The strata boundaries are fixed at the stratifyR solution; only the within-stratum",
             " sample sizes nₕ differ.")
         )
@@ -2640,13 +2685,13 @@ server <- function(input, output, session) {
       div(class = "dc-cards",
         div(class = "dc-card dc-highlight",
           div(class = "dc-val", fmt_v(V_neyman)),
-          div(class = "dc-lbl", "V*(ȳ) — Neyman")),
+          div(class = "dc-lbl", "V*(ȳ) - Neyman")),
         div(class = "dc-card",
           div(class = "dc-val", fmt_v(V_prop)),
-          div(class = "dc-lbl", "V*(ȳ) — Proportional")),
+          div(class = "dc-lbl", "V*(ȳ) - Proportional")),
         div(class = "dc-card",
           div(class = "dc-val", fmt_v(V_equal)),
-          div(class = "dc-lbl", "V*(ȳ) — Equal")),
+          div(class = "dc-lbl", "V*(ȳ) - Equal")),
         div(class = "dc-card",
           div(class = "dc-val", sprintf("%.3f×", V_prop  / V_neyman)),
           div(class = "dc-lbl", "Prop. / Neyman variance ratio")),
@@ -2679,7 +2724,7 @@ server <- function(input, output, session) {
         })),
         tags$tfoot(tags$tr(style="font-weight:700; background:#F1F5F9;",
           tags$td("Total"),
-          tags$td("1.0000"), tags$td("—"),
+          tags$td("1.0000"), tags$td("-"),
           tags$td(sum(nh_neyman)), tags$td(sum(nh_prop)), tags$td(sum(nh_equal))
         ))
       ),
@@ -2703,7 +2748,7 @@ server <- function(input, output, session) {
           div(class = "method-formula", "nₕ  ∝  Wₕ     →     nₕ = n × Wₕ"),
           tags$p(tags$strong("Equal allocation"), " splits the sample evenly across strata",
             " regardless of size or variability. Simple to administer, but often inefficient:"),
-          div(class = "method-formula", "nₕ  =  n / H     (rounded)"),
+          div(class = "method-formula", "nₕ  =  n / L     (rounded)"),
           tags$p("Variance under each allocation is computed as V*(ȳ) = Σ Wₕ²Vₕ/nₕ",
             " (ignoring the finite population correction). The variance ratio (Proportional /",
             " Neyman and Equal / Neyman) shows the cost in efficiency of the simpler designs.",
@@ -2712,9 +2757,9 @@ server <- function(input, output, session) {
           div(class = "method-ref",
             tags$strong("References: "),
             "Neyman, J. (1934). On the two different aspects of the representative method.",
-            " ", tags$em("Journal of the Royal Statistical Society"), ", 97(4), 558–625. — ",
+            " ", tags$em("Journal of the Royal Statistical Society"), ", 97(4), 558-625. - ",
             "Cochran, W.G. (1977). ",
-            tags$em("Sampling Techniques"), ", 3rd ed. Wiley. §5.5. — ",
+            tags$em("Sampling Techniques"), ", 3rd ed. Wiley. §5.5. - ",
             "Lohr, S.L. (2010). ",
             tags$em("Sampling: Design and Analysis"), ", 2nd ed. §4.3.")
         )
@@ -2849,7 +2894,7 @@ server <- function(input, output, session) {
           tags$p("The minimum achievable variance for budget C is given analytically by:"),
           div(class = "method-formula", "V_min  =  (ΣWₕSₕ√cₕ)²  /  C"),
           tags$p("For comparison, the tab also shows the ", tags$strong("Neyman allocation"),
-            " for the same budget — i.e., ignoring costs and distributing n ∝ WₕSₕ with",
+            " for the same budget - i.e., ignoring costs and distributing n ∝ WₕSₕ with",
             " n chosen so that ΣcₕNₕ = C. When costs are unequal, cost-optimal allocation",
             " always achieves a lower (or equal) variance than budget-constrained Neyman."),
           tags$p(tags$strong("How to use: "),
@@ -2860,9 +2905,9 @@ server <- function(input, output, session) {
             tags$strong("References: "),
             "Cochran, W.G. (1977). ",
             tags$em("Sampling Techniques"), ", 3rd ed. Wiley. §5.5 (Cost and variance in",
-            " stratified sampling). — ",
+            " stratified sampling). - ",
             "Hansen, M.H., Hurwitz, W.N. & Madow, W.G. (1953). ",
-            tags$em("Sample Survey Methods and Theory"), ". Wiley. Vol. I, §6.9. — ",
+            tags$em("Sample Survey Methods and Theory"), ". Wiley. Vol. I, §6.9. - ",
             "Lohr, S.L. (2010). ",
             tags$em("Sampling: Design and Analysis"), ", 2nd ed. §4.5.")
         )
@@ -2929,7 +2974,7 @@ server <- function(input, output, session) {
         tags$td(round(cr$Wh[h],    4)),
         tags$td(round(cr$Sh[h],    4)),
         tags$td(tags$strong(cr$nh_cost[h])),
-        tags$td(if(is.finite(cr$nh_neyman_b[h])) cr$nh_neyman_b[h] else "—")
+        tags$td(if(is.finite(cr$nh_neyman_b[h])) cr$nh_neyman_b[h] else "-")
       )
     )
 
@@ -2941,16 +2986,16 @@ server <- function(input, output, session) {
         div(style="width:1px;background:rgba(5,150,105,0.25);align-self:stretch;"),
         div(class = "cc-result-stat",
           div(class = "cc-result-val", formatC(cr$V_cost,   format="e", digits=3)),
-          div(class = "cc-result-lbl", "V*(ȳ) — cost-optimal")),
+          div(class = "cc-result-lbl", "V*(ȳ) - cost-optimal")),
         div(style="width:1px;background:rgba(5,150,105,0.25);align-self:stretch;"),
         div(class = "cc-result-stat",
           div(class = "cc-result-val",
-            if (is.finite(cr$V_neyman_b)) formatC(cr$V_neyman_b, format="e", digits=3) else "—"),
-          div(class = "cc-result-lbl", "V*(ȳ) — Neyman (same budget)")),
+            if (is.finite(cr$V_neyman_b)) formatC(cr$V_neyman_b, format="e", digits=3) else "-"),
+          div(class = "cc-result-lbl", "V*(ȳ) - Neyman (same budget)")),
         div(style="width:1px;background:rgba(5,150,105,0.25);align-self:stretch;"),
         div(class = "cc-result-stat",
           div(class = "cc-result-val",
-            if (is.finite(gain)) sprintf("%.3f×", gain) else "—"),
+            if (is.finite(gain)) sprintf("%.3f×", gain) else "-"),
           div(class = "cc-result-lbl", "Cost-opt. efficiency vs Neyman"))
       ),
 
@@ -2964,9 +3009,9 @@ server <- function(input, output, session) {
         )),
         tags$tbody(tbl_rows),
         tags$tfoot(tags$tr(style="font-weight:700;background:#F1F5F9;",
-          tags$td("Total"), tags$td("—"), tags$td("1.0000"), tags$td("—"),
+          tags$td("Total"), tags$td("-"), tags$td("1.0000"), tags$td("-"),
           tags$td(cr$n_total_cost),
-          tags$td(if(is.finite(sum(cr$nh_neyman_b))) sum(cr$nh_neyman_b) else "—")
+          tags$td(if(is.finite(sum(cr$nh_neyman_b))) sum(cr$nh_neyman_b) else "-")
         ))
       ),
       div(class = "hsel-note", style = "margin-top:0.5rem;",
@@ -3021,15 +3066,15 @@ server <- function(input, output, session) {
     # ── Banner (always visible) ─────────────────────────────────────────────
     banner <- div(class = "hsel-banner",
       div(
-        div(class = "hsel-banner-title", "H-Selector Efficiency Curve"),
+        div(class = "hsel-banner-title", "Strata Count Efficiency Curve"),
         div(class = "hsel-banner-text",
-          "Runs stratifyR with COBYLA for H = 1 to 12 and plots ΣWₕSₕ vs H.",
-          " The elbow of the curve — detected automatically using the maximum",
-          " perpendicular-distance method — marks the recommended H.")
+          "Runs stratifyR with COBYLA for L = 1 to 12 and plots ΣWₕSₕ vs L.",
+          " The elbow of the curve - detected automatically using the maximum",
+          " perpendicular-distance method - marks the recommended L.")
       ),
       actionButton("run_h_curve",
         tagList(icon(if (is.null(rows)) "play" else "rotate"),
-                if (is.null(rows)) " Compute H-Curve" else " Recompute"),
+                if (is.null(rows)) " Compute Strata Count Curve" else " Recompute"),
         class = if (is.null(rows)) "btn btn-primary"
                 else "btn btn-outline-light btn-sm")
     )
@@ -3100,7 +3145,7 @@ server <- function(input, output, session) {
     # % cumulative reduction vs H = 1
     df$cum_pct <- round(100 * (df$WhSh[1] - df$WhSh) / df$WhSh[1], 1)
 
-    # ── Elbow detection — only on reliable rows ───────────────────────────────
+    # ── Elbow detection - only on reliable rows ───────────────────────────────
     df_ok <- df[df$ok, , drop = FALSE]
     rec_H <- if (nrow(df_ok) >= 3L) {
       h_sc <- (df_ok$H    - df_ok$H[1])    / max(df_ok$H[nrow(df_ok)]    - df_ok$H[1],    1e-12)
@@ -3123,12 +3168,12 @@ server <- function(input, output, session) {
             tags$p(style = "margin:0 0 0.3rem 0;",
               tags$strong("Heavy-tailed distribution detected (", fitted_distr, ")."),
               " Very heavy tails make every solver more sensitive.",
-              " Treat this curve as a guide and confirm the chosen H with the EXACT solver in the main run.")
+              " Treat this curve as a guide and confirm the chosen L with the EXACT solver in the main run.")
           else NULL,
           if (n_degen > 0)
             tags$p(style = "margin:0 0 0.3rem 0;",
               tags$strong(n_degen, " degenerate result(s) detected"),
-              sprintf(" (H = %s) and excluded from the elbow calculation.",
+              sprintf(" (L = %s) and excluded from the elbow calculation.",
                 paste(df$H[!df$ok], collapse = ", ")),
               " These rows are marked ⚠ in the table. Degenerate solutions occur when COBYLA",
               " collapses all stratum boundaries to nearly the same point (ΣWₕSₕ ≈ 0),",
@@ -3137,8 +3182,8 @@ server <- function(input, output, session) {
           if (n_stagnant > 0)
             tags$p(style = "margin:0;",
               tags$strong(n_stagnant, " stagnant result(s) detected"),
-              sprintf(" (H = %s).", paste(df$H[df$stagnant], collapse = ", ")),
-              " COBYLA returned essentially the same solution for these consecutive H values",
+              sprintf(" (L = %s).", paste(df$H[df$stagnant], collapse = ", ")),
+              " COBYLA returned essentially the same solution for these consecutive L values",
               " (< 0.05% improvement), shown as grey ◆ on the plot.",
               " Adding a stratum gave almost no gain here, which usually means the extra strata are not needed.")
           else NULL
@@ -3148,13 +3193,13 @@ server <- function(input, output, session) {
 
     # ── Recommendation box ───────────────────────────────────────────────────
     rec_note <- if (rec_H == cur_H)
-      "Your current H sits at the elbow — a good choice."
+      "Your current L sits at the elbow - a good choice."
     else
-      sprintf("The curve bends most sharply at H = %d. Beyond this, each extra stratum returns diminishing variance reduction.", rec_H)
+      sprintf("The curve bends most sharply at L = %d. Beyond this, each extra stratum returns diminishing variance reduction.", rec_H)
 
     rec_box <- div(class = "hsel-rec-box",
       div(
-        div(class = "hsel-rec-h",    paste0("H = ", rec_H)),
+        div(class = "hsel-rec-h",    paste0("L = ", rec_H)),
         div(class = "hsel-rec-label",
           if (n_degen > 0 || n_stagnant > 0) "Recommended strata (reliable points only)"
           else "Recommended strata")
@@ -3191,9 +3236,9 @@ server <- function(input, output, session) {
                                  formatC(df$WhSh[i], format = "f", digits = 5))
                 else formatC(df$WhSh[i], format = "f", digits = 5)),
         tags$td(formatC(df$V[i], format = "e", digits = 4)),
-        tags$td(if (is_degen || is.na(df$gain_pct[i])) "—"
+        tags$td(if (is_degen || is.na(df$gain_pct[i])) "-"
                 else sprintf("%.1f%%", df$gain_pct[i])),
-        tags$td(if (is_degen) "—"
+        tags$td(if (is_degen) "-"
                 else sprintf("%.1f%%", df$cum_pct[i]))
       )
     })
@@ -3206,11 +3251,11 @@ server <- function(input, output, session) {
         plotlyOutput("plot_h_curve", height = "360px")),
       tags$table(class = "hsel-table",
         tags$thead(tags$tr(
-          tags$th("H"),
+          tags$th("L"),
           tags$th("ΣWₕSₕ"),
           tags$th("V*(n)"),
           tags$th("Marginal gain"),
-          tags$th("Cumulative reduction vs H=1")
+          tags$th("Cumulative reduction vs L=1")
         )),
         tags$tbody(tbl_rows)
       ),
@@ -3225,18 +3270,18 @@ server <- function(input, output, session) {
 
         div(class = "intro-section",
           div(class = "intro-section-title",
-            div(class = "num-badge", "1"), "Why plot ΣWₕSₕ against H?"),
+            div(class = "num-badge", "1"), "Why plot ΣWₕSₕ against L?"),
           div(class = "intro-body",
             tags$p(
               "Under Neyman (optimal) allocation the variance of the stratified mean is",
               " ", tags$em("V*(ȳ) = (ΣWₕSₕ)² / n"), ".",
               " Minimising ΣWₕSₕ over the strata boundaries is therefore the core",
-              " objective of stratifyR. As H increases, more strata are available to",
+              " objective of stratifyR. As L increases, more strata are available to",
               " adapt to the shape of the population distribution, and ΣWₕSₕ decreases."),
             tags$p(
-              "However, the improvement is not linear — early strata deliver large gains",
+              "However, the improvement is not linear - early strata deliver large gains",
               " while each additional stratum beyond the elbow contributes only marginally.",
-              " The H-Selector curve makes this trade-off explicit: pick the H that sits",
+              " The strata count curve makes this trade-off explicit: pick the L that sits",
               " at the bend, and you capture most of the attainable variance reduction",
               " at minimal survey complexity.")
           )
@@ -3244,50 +3289,50 @@ server <- function(input, output, session) {
 
         div(class = "intro-section",
           div(class = "intro-section-title",
-            div(class = "num-badge", "2"), "The Elbow Method — formalised via Kneedle"),
+            div(class = "num-badge", "2"), "The Elbow Method - formalised via Kneedle"),
           div(class = "intro-body",
             tags$p(
               "The ", tags$strong("elbow method"), " is a general visual heuristic:",
-              " inspect the curve and pick the H at which it bends most sharply,",
+              " inspect the curve and pick the L at which it bends most sharply,",
               " after which each additional stratum contributes diminishing returns.",
               " Because 'by eye' detection is subjective, Satopaa et al. (2011) proposed",
               " the ", tags$strong("Kneedle algorithm"), " as a formal, automated way to",
               " locate that same elbow point mathematically.",
               " stratifyR uses Kneedle to remove ambiguity from the selection."),
             tags$p(
-              "Given the sequence of points ", tags$em("(H₁, f₁), …, (Hₘ, fₘ)"),
+              "Given the sequence of points ", tags$em("(L₁, f₁), …, (Lₘ, fₘ)"),
               " where ", tags$em("fₕ = ΣWₕSₕ"), ", the algorithm proceeds in three steps:"),
-            tags$p(tags$strong("Step 1 — Normalise both axes to [0, 1]:")),
+            tags$p(tags$strong("Step 1 - Normalise both axes to [0, 1]:")),
             div(class = "intro-math",
               withMathJax(
                 "\\[ \\tilde{H}_i = \\frac{H_i - H_1}{H_m - H_1}, \\qquad
                     \\tilde{f}_i = \\frac{f_i - f_m}{f_1 - f_m} \\]")),
             tags$p(
               "After normalisation the first point is at (0, 1) and the last at (1, 0)."),
-            tags$p(tags$strong("Step 2 — Reference line:")),
+            tags$p(tags$strong("Step 2 - Reference line:")),
             tags$p(
               "Draw the straight line connecting",
               " (0, 1) to (1, 0). Its equation is ",
               tags$em("x + y = 1"), "."),
-            tags$p(tags$strong("Step 3 — Find the point of maximum perpendicular distance:")),
+            tags$p(tags$strong("Step 3 - Find the point of maximum perpendicular distance:")),
             div(class = "intro-math",
               withMathJax(
-                "\\[ d_i = \\frac{\\left|\\,\\tilde{H}_i + \\tilde{f}_i - 1\\,\\right|}{\\sqrt{2}} \\]")),
+                "\\[ d_i = \\frac{\\left|\\,\\tilde{L}_i + \\tilde{f}_i - 1\\,\\right|}{\\sqrt{2}} \\]")),
             tags$p(
               "For a convex-decreasing curve (ΣWₕSₕ always decreases, steeply at first),",
               " every interior point lies ", tags$em("below"), " the diagonal, so",
               " ", tags$em("d"), " simplifies to"),
             div(class = "intro-math",
               withMathJax(
-                "\\[ d_i = \\frac{1 - \\tilde{H}_i - \\tilde{f}_i}{\\sqrt{2}} \\]")),
+                "\\[ d_i = \\frac{1 - \\tilde{L}_i - \\tilde{f}_i}{\\sqrt{2}} \\]")),
             div(class = "intro-key-result",
-              "The recommended H is ",
-              tags$em("argmin (\\(\\tilde{H}_i + \\tilde{f}_i\\))"),
+              "The recommended L is ",
+              tags$em("argmin (\\(\\tilde{L}_i + \\tilde{f}_i\\))"),
               " over the interior points i = 2, …, m−1.",
-              " This is the Kneedle formalisation of the elbow: the H at which the curve",
+              " This is the Kneedle formalisation of the elbow: the L at which the curve",
               " departs furthest from a straight-line interpolation between the two",
               " extremes. Both the concept (elbow) and its detection (Kneedle) point to",
-              " the same answer — Kneedle simply removes the subjectivity of visual inspection.")
+              " the same answer - Kneedle simply removes the subjectivity of visual inspection.")
           )
         ),
 
@@ -3300,19 +3345,19 @@ server <- function(input, output, session) {
               "Satopaa, V., Albrecht, J., Irwin, D., & Raghavan, B. (2011).",
               " Finding a 'kneedle' in a haystack: Detecting knee points in system behaviour.",
               " ", tags$em("31st IEEE International Conference on Distributed Computing Systems Workshops"),
-              ", pp. 166–171.", tags$br(),
+              ", pp. 166-171.", tags$br(),
               tags$strong("Optimal stratification: "),
               "Cochran, W.G. (1977). ",
-              tags$em("Sampling Techniques"), ", 3rd ed. Wiley. — Ch. 5.",
+              tags$em("Sampling Techniques"), ", 3rd ed. Wiley. - Ch. 5.",
               tags$br(),
               tags$strong("Neyman allocation: "),
               "Neyman, J. (1934). On the two different aspects of the representative method. ",
-              tags$em("Journal of the Royal Statistical Society"), " 97, 558–625.",
+              tags$em("Journal of the Royal Statistical Society"), " 97, 558-625.",
               tags$br(),
               tags$strong("Optimum boundaries: "),
               "Khan, M.G.M., Nand, N., & Ahmad, N. (2008). Determining optimum strata",
               " boundaries using mathematical programming. ",
-              tags$em("Survey Methodology"), " 34(2), 91–102."
+              tags$em("Survey Methodology"), " 34(2), 91-102."
             )
           )
         )
@@ -3363,7 +3408,7 @@ server <- function(input, output, session) {
       idx <- end_idx + 1L
     }
 
-    # "Good" = ok and not stagnant — used for the solid line and elbow
+    # "Good" = ok and not stagnant - used for the solid line and elbow
     df$good <- df$ok & !df$stagnant
     df_good <- df[df$good, , drop = FALSE]
     df_ok   <- df[df$ok,   , drop = FALSE]   # for annotation lookup
@@ -3390,7 +3435,7 @@ server <- function(input, output, session) {
                ifelse(df$stagnant, "diamond", "circle"))
 
     hover_txt <- sprintf(
-      paste0("<b>H = %d</b>%s<br>",
+      paste0("<b>L = %d</b>%s<br>",
              "ΣWₕSₕ = %.5f<br>",
              "V*(n) = %.6f%s<extra></extra>"),
       df$H,
@@ -3416,7 +3461,7 @@ server <- function(input, output, session) {
         showlegend = FALSE, hoverinfo = "none")
     }
 
-    # Dashed grey line through stagnant points (if any) — connects them visually
+    # Dashed grey line through stagnant points (if any) - connects them visually
     # but signals they're unreliable
     df_stag <- df[df$stagnant, , drop = FALSE]
     # include the last good point before the stagnant run as anchor
@@ -3448,14 +3493,14 @@ server <- function(input, output, session) {
         hovertemplate = hover_txt,
         showlegend    = FALSE)
 
-    # Annotations for special points — only on good (non-stagnant, non-degen) rows
+    # Annotations for special points - only on good (non-stagnant, non-degen) rows
     annots <- list()
     if (cur_H %in% df_good$H) {
       y_cur <- df_good$WhSh[df_good$H == cur_H]
       if (cur_H == rec_H) {
         annots <- c(annots, list(list(
           x = cur_H, y = y_cur, xanchor = "center", yanchor = "top",
-          text = sprintf("<b>H = %d  (current = elbow)</b>", cur_H),
+          text = sprintf("<b>L = %d  (current = elbow)</b>", cur_H),
           showarrow = TRUE, arrowhead = 0,
           arrowcolor = "#059669", arrowwidth = 1.5, ax = 0, ay = 40,
           font = list(size = 11, color = "#065F46"),
@@ -3463,7 +3508,7 @@ server <- function(input, output, session) {
       } else {
         annots <- c(annots, list(list(
           x = cur_H, y = y_cur, xanchor = "center", yanchor = "top",
-          text = sprintf("<b>H = %d  (current)</b>", cur_H),
+          text = sprintf("<b>L = %d  (current)</b>", cur_H),
           showarrow = TRUE, arrowhead = 0,
           arrowcolor = "#C0392B", arrowwidth = 1.5, ax = 0, ay = 40,
           font = list(size = 11, color = "#C0392B"),
@@ -3474,7 +3519,7 @@ server <- function(input, output, session) {
       annots <- c(annots, list(list(
         x = rec_H, y = df_good$WhSh[df_good$H == rec_H],
         xanchor = "center", yanchor = "top",
-        text = sprintf("<b>H = %d  (elbow)</b>", rec_H),
+        text = sprintf("<b>L = %d  (elbow)</b>", rec_H),
         showarrow = TRUE, arrowhead = 0,
         arrowcolor = "#059669", arrowwidth = 1.5, ax = 0, ay = 40,
         font = list(size = 11, color = "#065F46"),
@@ -3483,7 +3528,7 @@ server <- function(input, output, session) {
 
     fig |> plotly::layout(
       xaxis = list(
-        title    = list(text = "Number of Strata (H)", font = list(size = 13)),
+        title    = list(text = "Number of Strata (L)", font = list(size = 13)),
         tickmode = "linear", tick0 = 1, dtick = 1,
         zeroline = FALSE, gridcolor = "#F1F5F9",
         showline = TRUE, linecolor = "#E2E8F0"),
@@ -3637,7 +3682,7 @@ server <- function(input, output, session) {
       plotly::add_trace(
         x = x_seq, y = dens, type = "scatter", mode = "lines",
         line = list(color = "#1a1a2e", width = 2.6),
-        name = sprintf("f(y) — %s", distr_lbl),
+        name = sprintf("f(y) - %s", distr_lbl),
         hovertemplate = "y = %{x:.3f}<br>f(y) = %{y:.5f}<extra></extra>"
       )
 
@@ -3711,7 +3756,7 @@ server <- function(input, output, session) {
     )
   }
 
-  # ── 2D plot (plotly, clean — matches screenshot) ──────────────────────────────
+  # ── 2D plot (plotly, clean - matches screenshot) ──────────────────────────────
   output$plot_2d <- renderPlotly({
     req(has_plotly)
     res <- strata_res(); req(res)
@@ -3780,7 +3825,7 @@ server <- function(input, output, session) {
                   style = sprintf("background:%s;", cols[i])),
         tags$span(class = "strata-label",    sprintf("Stratum %d", i)),
         tags$span(class = "strata-interval",
-                  sprintf("[%s – %s]",
+                  sprintf("[%s - %s]",
                           formatC(row$Lower, format = "f", digits = 2, big.mark = ","),
                           formatC(row$Upper, format = "f", digits = 2, big.mark = ","))),
         tags$span(class = "strata-stat", sprintf("Wh = %.4f", row$Wh)),
@@ -3810,7 +3855,7 @@ server <- function(input, output, session) {
                                 main    = plot_main())
   })
 
-  # ── Interactive Explorer v2 — Shiny-native sliders ───────────────────────────
+  # ── Interactive Explorer v2 - Shiny-native sliders ───────────────────────────
   #
   # Layout:  plotly 2D density plot (reacts to sliders)
   #          stats strip  (current ΣWhSh | optimal | gap)
@@ -3925,7 +3970,7 @@ server <- function(input, output, session) {
               "font-size: 0.68rem; font-weight: 700;",
               " letter-spacing: 1.5px; text-transform: uppercase;",
               " color: #94A3B8; margin-bottom: 0.55rem;"),
-          "■ Boundary Controls  —  drag to explore"),
+          "■ Boundary Controls  -  drag to explore"),
         div(style = "display: flex; flex-wrap: wrap; gap: 4px;",
           sliders_ui)
       )
@@ -3986,7 +4031,7 @@ server <- function(input, output, session) {
       plotly::add_trace(
         x = x_seq, y = dens, type = "scatter", mode = "lines",
         line = list(color = "#1a1a2e", width = 2.5),
-        name = sprintf("f(y) — %s", distr_lbl),
+        name = sprintf("f(y) - %s", distr_lbl),
         hovertemplate = "y=%{x:.3f}  f(y)=%{y:.5f}<extra></extra>")
 
     # Optimal boundary reference lines (green dotted)
@@ -4084,7 +4129,7 @@ server <- function(input, output, session) {
       div(class = "meta-item",
         span("Current ΣWₕSₕ:"),
         span(class = "meta-badge",
-          if (is.finite(cur_obj)) formatC(cur_obj, digits = 5, format = "f") else "—")),
+          if (is.finite(cur_obj)) formatC(cur_obj, digits = 5, format = "f") else "-")),
       div(class = "meta-item",
         span("Optimal ΣWₕSₕ:"),
         span(class = "meta-badge green",
@@ -4096,12 +4141,12 @@ server <- function(input, output, session) {
         span("V*(n) current:"),
         span(class = "meta-badge",
           if (is.finite(cur_obj))
-            formatC(cur_obj ^ 2 / n_tot, digits = 6, format = "f") else "—"))
+            formatC(cur_obj ^ 2 / n_tot, digits = 6, format = "f") else "-"))
     )
   })
 
   if (FALSE) {
-    # ── placeholder – never executed ──────────────────────────────────────────
+    # ── placeholder - never executed ──────────────────────────────────────────
     n_sliders    <- 0L
 
     # ── Inline objective functions (replicate package internals exactly) ─────────
@@ -4251,7 +4296,7 @@ server <- function(input, output, session) {
       plotly::add_trace(
         x = x_seq, y = dens, type = "scatter", mode = "lines",
         line = list(color = "#1a1a2e", width = 2.6),
-        name = sprintf("f(y) — %s", distr_lbl),
+        name = sprintf("f(y) - %s", distr_lbl),
         hovertemplate = "y=%{x:.3f}  f(y)=%{y:.5f}<extra></extra>"
       )
 
@@ -4265,7 +4310,7 @@ server <- function(input, output, session) {
         )
     }
 
-    # ── Annotations — ORDER MATTERS: index 0 = header, 1 = stats (slider target)
+    # ── Annotations - ORDER MATTERS: index 0 = header, 1 = stats (slider target)
     ibe_header <- list(
       x = 0.655, y = 0.99, xref = "paper", yref = "paper",
       xanchor = "left", yanchor = "top",
@@ -4280,7 +4325,7 @@ server <- function(input, output, session) {
       borderpad   = 9
     )
 
-    # Stats box goes BELOW the legend — estimate legend height from item count
+    # Stats box goes BELOW the legend - estimate legend height from item count
     n_legend_items <- H + 2L   # Histogram + H strata + density line
     legend_h_paper <- (n_legend_items * 26L + 20L) / h_px   # realistic row height
     stats_y        <- max(0.05, 0.78 - legend_h_paper - 0.10) # clear gap below legend
@@ -4366,7 +4411,7 @@ server <- function(input, output, session) {
 
     header <- paste0(
       "# ================================================================\n",
-      "# stratifyR 2.0 — Reproducible R Code\n",
+      "# stratifyR 2.0 - Reproducible R Code\n",
       "# Generated: ", format(Sys.time(), "%Y-%m-%d %H:%M"), "\n",
       "# ================================================================\n\n",
       "library(stratifyR)\n"
@@ -4419,6 +4464,15 @@ server <- function(input, output, session) {
         col_name, h, n, mtd)
     }
 
+    # v2.0-4: add the fpc / takeall options of the exact solver to the call
+    if (identical(mtd, "exact") && input$data_source != "distr") {
+      opt_str <- paste0(
+        if (isTRUE(input$opt_fpc))     ",\n  fpc    = TRUE" else "",
+        if (isTRUE(input$opt_takeall)) ",\n  takeall = TRUE" else "")
+      if (nzchar(opt_str))
+        data_call <- sub("\n\\)$", paste0(opt_str, "\n)"), data_call)
+    }
+
     # ---- result annotation (if a run has been completed) --------------------
     result_block <- ""
     if (!is.null(res)) {
@@ -4438,10 +4492,14 @@ server <- function(input, output, session) {
         "\n\n",
         "# ── Result summary (from app run) ────────────────────────\n",
         sprintf("# Method          : %s\n", toupper(mtd)),
-        sprintf("# H (strata)      : %d\n", nrow(res$h)),
+        sprintf("# L (strata)      : %d\n", nrow(res$h)),
         sprintf("# Total n         : %d\n", res$nhTot),
         sprintf("# ΣWhSh           : %.6f\n", res$WhShTot),
         sprintf("# V*(n)           : %.8f\n", res$WhShTot^2 / res$nhTot),
+        if (!is.null(res$variance) && is.finite(res$variance))
+          sprintf("# Variance (fpc)  : %.8f\n", res$variance) else "",
+        if (!is.null(res$takeall) && isTRUE(res$takeall > 0))
+          sprintf("# Take-all units  : %d\n", as.integer(res$takeall)) else "",
         "# Converged       : ", conv_txt, "\n",
         if (!is.na(res$optimality_gap) && is.finite(res$optimality_gap))
           sprintf("# Optimality gap  : %.4f%%\n", 100 * res$optimality_gap) else "",
