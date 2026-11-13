@@ -2,16 +2,18 @@
 # print.strata.R  --  stratifyR 2.0
 # =============================================================================
 
-#' Print Method for Stratified Survey Design Objects
+#' Print a stratification
 #'
-#' Prints a compact console summary of the stratification results.
-#' For a full table use \code{summary(object)}.
+#' Prints a compact console summary of the stratification results. For the full
+#' per-stratum table use \code{summary(x)}.
 #'
-#' @param x   A \code{"strata"} object.
-#' @param ...  Currently unused.
+#'
+#' @param x A \code{"stratifyR"} object.
+#' @param ... Currently unused.
 #' @return Invisibly returns \code{x}.
+#' @rdname print.strata
 #' @export
-print.strata <- function(x, ...) {
+print.stratifyR <- function(x, ...) {
   H <- nrow(x$h)
 
   cat("-- stratifyR 2.0 -- Optimal Stratification Results ------------------\n")

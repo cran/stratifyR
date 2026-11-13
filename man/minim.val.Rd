@@ -2,7 +2,7 @@
 % Please edit documentation in R/minim.val.R
 \name{minim.val}
 \alias{minim.val}
-\title{To identify the minimum value out of two given sets of values}
+\title{Smaller of two values}
 \usage{
 minim.val(val1, val2)
 }
@@ -15,11 +15,15 @@ minim.val(val1, val2)
 \code{} returns the minimum value
 }
 \description{
+Returns the smaller of two values.
+}
+\details{
 This function is called in data.optim() or distr.optim()
 which basically compares and returns the smaller value out
 of two given sets of values.
 }
 \author{
 Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr
-MGM Khan <khan_mg@usp.ac.fj>
+MGM Khan <mgm.khan@usp.ac.fj>
 }
+\keyword{internal}

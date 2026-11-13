@@ -2,18 +2,21 @@
 % Please edit documentation in R/compare_designs.R
 \name{compare_designs}
 \alias{compare_designs}
-\alias{compare_designs.strata}
+\alias{compare_designs.default}
+\alias{compare_designs.stratifyR}
 \alias{print.compare_designs}
-\title{Compare Survey Design Efficiencies}
+\title{Compare survey design efficiencies}
 \usage{
 compare_designs(object, ...)
 
-\method{compare_designs}{strata}(object, n = NULL, ...)
+\method{compare_designs}{default}(object, ...)
+
+\method{compare_designs}{stratifyR}(object, n = NULL, ...)
 
 \method{print}{compare_designs}(x, digits = 6, ...)
 }
 \arguments{
-\item{object}{An object of class \code{"strata"}.}
+\item{object}{An object of class \code{"stratifyR"}.}
 
 \item{...}{Currently unused.}
 
@@ -26,7 +29,7 @@ value used when the stratification was run).}
 }
 \value{
 An object of class \code{"compare_designs"} (an invisibly-printed
-list) with components:
+  list) with components:
 \describe{
   \item{\code{n}}{Total sample size used.}
   \item{\code{H}}{Number of strata.}
@@ -44,10 +47,10 @@ list) with components:
 }
 }
 \description{
-Given a fitted \code{"strata"} object (from \code{\link{strata.data}} or
-\code{\link{strata.distr}}), computes and compares the variance of the sample
-mean under three designs for the \strong{same} total sample size \eqn{n}:
-
+Given a fitted \code{"stratifyR"} object (from \code{\link{strata.data}} or
+\code{\link{strata.distr}}), computes and compares the variance of the
+sample mean under three designs for the \strong{same} total sample size
+\eqn{n}:
 \describe{
   \item{SRS}{Simple random sampling without replacement (baseline).}
   \item{Proportional}{Stratified sampling with \eqn{n_h \propto W_h}
@@ -55,7 +58,8 @@ mean under three designs for the \strong{same} total sample size \eqn{n}:
   \item{Neyman}{Stratified sampling with \eqn{n_h \propto W_h S_h}
     (optimal/Neyman allocation), the allocation used by \code{stratifyR}.}
 }
-
+}
+\details{
 Design effects (DEFF) follow Kish (1965): \eqn{\mathrm{DEFF} = V_{\rm design}
 / V_{\rm SRS}}. The \emph{equivalent SRS sample size} is the number of
 observations an SRS design would need to match the precision of the Neyman

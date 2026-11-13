@@ -2,21 +2,27 @@
 # plot.strata.R  --  stratifyR 2.0
 # =============================================================================
 
-#' Plot Method for Stratified Survey Design Objects
+#' Plot a stratification
 #'
-#' @param x       A \code{"strata"} object.
-#' @param type    \code{"2d"} (default), \code{"3d"}, or \code{"interactive"}.
-#' @param data    Optional numeric vector of population values.
-#' @param n_pts   Integer. Density grid size. Default \code{512L}.
-#' @param alpha   Numeric. Stratum fill transparency. Default \code{0.25}.
+#' Visualises a stratified design. The \code{"2d"} mode draws a histogram with
+#' the fitted density overlaid and the strata shaded; \code{"3d"} and
+#' \code{"interactive"} render \pkg{plotly} views of the Neyman cost surface.
+#'
+#'
+#' @param x A \code{"stratifyR"} object.
+#' @param type \code{"2d"} (default), \code{"3d"}, or \code{"interactive"}.
+#' @param data Optional numeric vector of population values.
+#' @param n_pts Integer. Density grid size. Default \code{512L}.
+#' @param alpha Numeric. Stratum fill transparency. Default \code{0.25}.
 #' @param palette Character vector of stratum colours (recycled).
-#' @param main    Character. Plot title (auto-generated if \code{NULL}).
-#' @param ...     Passed to \code{hist()} or \code{plotly::layout()}.
-#'
-#' @return Invisibly returns \code{x} for \code{"2d"}; a plotly widget
-#'   for \code{"3d"} / \code{"interactive"}.
-#'
+#' @param main Character. Plot title (auto-generated if \code{NULL}).
+#' @param show_info Logical. Overlay a per-stratum information box on the
+#' \code{"2d"} plot. Default \code{TRUE}.
+#' @param ... Passed to \code{hist()} or \code{plotly::layout()}.
+#' @return Invisibly returns \code{x} for \code{"2d"}; a \pkg{plotly} widget
+#' for \code{"3d"} and \code{"interactive"}.
 #' @examples
+#' 
 #' \dontrun{
 #' set.seed(1); y <- rgamma(2000, shape = 2, rate = 0.5)
 #' res <- strata.data(y, h = 4, n = 400)
@@ -25,8 +31,9 @@
 #' plot(res, type = "interactive")
 #' }
 #'
+#' @rdname plot.strata
 #' @export
-plot.strata <- function(x,
+plot.stratifyR <- function(x,
                          type      = c("2d", "3d", "interactive"),
                          data      = NULL,
                          n_pts     = 512L,

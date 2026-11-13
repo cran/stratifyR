@@ -51,9 +51,9 @@ res_glob_d <- strata.distr(h=3, initval=1.5, dist=33.2,
                 n=350, N=724, method="global")
 
 # Direct comparison of the three methods
-cat("DP     OSB:", round(res_dp_d$OSB, 3),   "  WhShTot:", res_dp_d$WhShTot, "\n")
-cat("COBYLA OSB:", round(res_cob_d$OSB, 3),  "  WhShTot:", res_cob_d$WhShTot, "\n")
-cat("GLOBAL OSB:", round(res_glob_d$OSB, 3), "  WhShTot:", res_glob_d$WhShTot, "\n")
+cat("DP     OSB:", round(boundaries(res_dp_d), 3),   "  WhShTot:", objective(res_dp_d), "\n")
+cat("COBYLA OSB:", round(boundaries(res_cob_d), 3),  "  WhShTot:", objective(res_cob_d), "\n")
+cat("GLOBAL OSB:", round(boundaries(res_glob_d), 3), "  WhShTot:", objective(res_glob_d), "\n")
 
 ## ----include=TRUE-------------------------------------------------------------
 data(anaemia)
@@ -66,10 +66,10 @@ res_exact_s <- strata.data(Iron, h=2, n=350, method="exact")
 summary(res_exact_s)
 
 # Direct comparison
-cat("DP     OSB:", round(res_dp_s$OSB, 3),    "  WhShTot:", res_dp_s$WhShTot, "\n")
-cat("COBYLA OSB:", round(res_cob_s$OSB, 3),   "  WhShTot:", res_cob_s$WhShTot, "\n")
-cat("GLOBAL OSB:", round(res_glob_s$OSB, 3),  "  WhShTot:", res_glob_s$WhShTot, "\n")
-cat("EXACT  OSB:", round(res_exact_s$OSB, 3), "  WhShTot:", res_exact_s$WhShTot, "\n")
+cat("DP     OSB:", round(boundaries(res_dp_s), 3),    "  WhShTot:", objective(res_dp_s), "\n")
+cat("COBYLA OSB:", round(boundaries(res_cob_s), 3),   "  WhShTot:", objective(res_cob_s), "\n")
+cat("GLOBAL OSB:", round(boundaries(res_glob_s), 3),  "  WhShTot:", objective(res_glob_s), "\n")
+cat("EXACT  OSB:", round(boundaries(res_exact_s), 3), "  WhShTot:", objective(res_exact_s), "\n")
 
 ## ----include=TRUE-------------------------------------------------------------
 data(hies)
@@ -79,18 +79,18 @@ summary(expend)
 ## ----include=TRUE-------------------------------------------------------------
 res <- strata.data(expend, h = 4, n = 400, method = "exact")
 res
-res$OSB
-res$nh
-sum(res$nh)    # the stratum sample sizes always add up to n
+boundaries(res)
+allocation(res)
+sum(allocation(res)$nh)    # the stratum sample sizes always add up to n
 
 ## ----include=TRUE, fig.width=5, fig.height=3.5--------------------------------
 h_values <- 2:7
 cost_h <- sapply(h_values, function(h)
-  strata.data(expend, h = h, n = 400, method = "cobyla")$WhShTot)
+  objective(strata.data(expend, h = h, n = 400, method = "cobyla")))
 round(cost_h, 1)
 round(100 * (1 - cost_h[-1] / cost_h[-length(cost_h)]), 1)   # % drop at each step
 plot(h_values, cost_h, type = "b", pch = 19,
-     xlab = "Number of strata (h)", ylab = "WhShTot",
+     xlab = "Number of strata (h)", ylab = "Objective function",
      main = "Objective function by number of strata")
 
 ## ----include=TRUE-------------------------------------------------------------
@@ -100,15 +100,18 @@ compare_designs(res)
 ch <- c(1, 1, 2, 4)    # relative cost of one interview in each stratum
 res_cost <- strata.data(expend, h = 4, n = 400, method = "exact",
                         cost = TRUE, ch = ch)
-rbind(equal_costs = res$nh, with_costs = res_cost$nh)
-c(equal_costs = sum(res$nh * ch), with_costs = sum(res_cost$nh * ch))   # field cost
+nh_equal <- allocation(res)$nh
+nh_cost  <- allocation(res_cost)$nh
+rbind(equal_costs = nh_equal, with_costs = nh_cost)
+c(equal_costs = sum(nh_equal * ch), with_costs = sum(nh_cost * ch))   # field cost
 
 ## ----include=TRUE-------------------------------------------------------------
 res_fpc <- strata.data(expend, h = 4, n = 400, method = "exact", fpc = TRUE)
 res_ta  <- strata.data(expend, h = 4, n = 400, method = "exact", takeall = TRUE)
-c(objective = res$variance, fpc = res_fpc$variance, takeall = res_ta$variance)
-res_ta$takeall    # units in the take-all top stratum (0 if there is none)
-res_ta$nh
+c(objective = variance(res), fpc = variance(res_fpc), takeall = variance(res_ta))
+a_ta <- allocation(res_ta)
+a_ta
+any(a_ta$nh == a_ta$Nh)    # TRUE if a stratum is sampled completely (take-all)
 
 ## ----include=TRUE, fig.width=6, fig.height=4----------------------------------
 plot(res, data = expend)
@@ -331,7 +334,7 @@ knitr::kable(comparison_table, align = "llrlrrrrr",
 # tab <- t(sapply(pops, function(d) {
 #   n <- min(500, floor(length(d) / 2))
 #   sapply(c("dp", "cobyla", "global", "exact"),
-#          function(m) strata.data(d, h=3, n=n, method=m)$WhShTot)
+#          function(m) objective(strata.data(d, h=3, n=n, method=m)))
 # }))
 # tab
 

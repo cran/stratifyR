@@ -3564,7 +3564,7 @@ server <- function(input, output, session) {
           span("Status:"),
           span(class = paste("meta-badge", conv_cls), conv_lbl)),
         div(class = "meta-item",
-          span("Total variance V*:"),
+          span("\u03a6\u00b2/n (without fpc):"),
           span(class = "meta-badge",
             formatC(res$WhShTot^2 / res$nhTot, format = "e", digits = 3)))
       ),
@@ -3850,7 +3850,7 @@ server <- function(input, output, session) {
   output$plot_3d <- renderPlotly({
     req(has_plotly)
     res <- strata_res(); req(res)
-    stratifyR:::plot.strata(res, type    = "3d",
+    stratifyR:::plot.stratifyR(res, type    = "3d",
                                 palette = current_palette(),
                                 main    = plot_main())
   })
@@ -4516,7 +4516,9 @@ server <- function(input, output, session) {
     # ---- visualisation calls ------------------------------------------------
     viz_block <- paste0(
       "\n\n",
-      "summary(res)\n\n",
+      "summary(res)\n",
+      "boundaries(res)                     # optimum strata boundaries\n",
+      "allocation(res)                     # stratum and sample sizes\n\n",
       "plot(res)                           # 2D density + strata\n",
       "plot(res, type = \"3d\")              # 3D surface\n",
       "plot(res, type = \"interactive\")     # boundary explorer\n"

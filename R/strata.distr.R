@@ -10,69 +10,94 @@
 #   * Adds extra diagnostic slots (optimality_gap, kkt_residuals, converged).
 # =============================================================================
 
-#' Stratification of Univariate Survey Population Using the Distribution
+#' Stratify a univariate population using a distribution
 #'
-#' Computes Optimum Strata Boundaries (OSB) and Optimum Sample Sizes (OSS)
-#' when the dataset of the stratification variable is not available, relying
-#' instead on a hypothesised parametric distribution and its parameter values.
+#' This function takes in the underlying hypothetical distribution and its
+#' parameter(s) of the survey variable, the initial value and the range of the
+#' population, the fixed sample size (n) and the fixed population size (N) to
+#' compute the optimum stratum boundaries (OSB) for a given number of strata
+#' (L), optimum sample sizes (nh), etc. The main idea used is from Khan et al.
+#' (2008) whereby the problem of stratification is fromulated into a
+#' Mathematical Programming Problem (MPP) using the best-fit frequency
+#' distribution and its parameter estimates of the data. This MPP is then
+#' solved for the optimal solutions using the Dynamic Programming (DP) solution
+#' procedure.
 #'
-#' The default solver (\code{method = "dp"}) uses the original Dynamic
-#' Programming grid search, which guarantees a globally optimal solution.
-#' The alternative COBYLA solver (\code{method = "cobyla"}) uses a fast
-#' multi-start nonlinear optimiser; its solution quality is validated by the
-#' Cauchy-Schwarz lower-bound gap stored in \code{result$optimality_gap}.
 #'
-#' @param h       Integer. Number of strata.
-#' @param initval Numeric. Initial (minimum) value of the population variable.
-#' @param dist    Numeric. Range (distance) of the population variable.
-#' @param distr   Character. Name of the assumed distribution; one of
-#'   \code{"pareto"}, \code{"triangle"}, \code{"rtriangle"}, \code{"weibull"},
-#'   \code{"gamma"}, \code{"exp"}, \code{"unif"}, \code{"norm"},
-#'   \code{"lnorm"}, \code{"cauchy"}.
-#' @param params  Named numeric vector of distribution parameters.
-#' @param n       Integer. Fixed total sample size.
-#' @param N       Integer. Fixed total population size.
-#' @param cost    Logical. Default \code{FALSE} (equal unit costs).
-#' @param ch      Numeric vector of stratum costs (required when
-#'   \code{cost = TRUE}).
-#' @param method  Character. \code{"dp"} (default, Dynamic Programming solver)
-#'   or \code{"cobyla"} (fast multi-start alternative).
-#' @param n_starts Integer. Number of COBYLA random restarts.  Default
-#'   \code{20L}.
-#' @param max_iter Integer. Max evaluations per COBYLA start.  Default
-#'   \code{2000L}.
-#' @param tol     Numeric. COBYLA convergence tolerance.  Default \code{1e-9}.
-#' @param verbose Logical. Print per-start diagnostics.  Default \code{FALSE}.
-#'
-#' @return An object of class \code{"strata"} (same layout as
-#'   \strong{stratifyR} 1.x), with additional v2.0 diagnostic slots.
-#'
+#' @param h The number of strata, a whole number of at least 2.
+#' @param initval The smallest value of the stratification variable.
+#' @param dist The range of the variable (largest minus smallest value), a
+#' positive number.
+#' @param distr A character: denotes the name of the distribution that
+#' characterizes the population.
+#' @param params A named numeric vector (or list) with the parameters of the
+#' distribution: \code{shape} and \code{scale} for \code{"pareto"} and
+#' \code{"weibull"}; \code{shape} and \code{rate} for \code{"gamma"};
+#' \code{rate} for \code{"exp"}; \code{min} and \code{max} for
+#' \code{"unif"} and \code{"rtriangle"}, with \code{mode} also for
+#' \code{"triangle"}; \code{mean} and \code{sd} for \code{"norm"};
+#' \code{meanlog} and \code{sdlog} for \code{"lnorm"}; and \code{location}
+#' and \code{scale} for \code{"cauchy"}.
+#' @param n The total sample size, a whole number between \code{h} and
+#' \code{N}.
+#' @param N The population size.
+#' @param cost A logical: has default cost=FALSE. If it is a stratum-cost
+#' problem, cost=TRUE, with which one must provide the Ch parameter.
+#' @param ch A numeric: denotes a vector of stratum costs.
+#' @param method Character. Optimisation method: \code{"cobyla"} (fast
+#' multi-start COBYLA, default), \code{"dp"} (original Dynamic Programming
+#' solver), or \code{"global"} (exhaustive global search).
+#' @param n_starts Integer. Number of random restarts for the COBYLA solver.
+#' Default \code{20L}. Ignored when \code{method = "dp"}.
+#' @param max_iter Integer. Maximum function evaluations per COBYLA start.
+#' Default \code{2000L}.
+#' @param tol Numeric. Convergence tolerance for COBYLA. Default \code{1e-9}.
+#' @param verbose Logical. Print per-start progress. Default \code{FALSE}.
+#' @return \code{strata.distr} returns Optimum Strata Boundaries (OSB), stratum
+#' weights (Wh), stratum costs (Ch), stratum variances (Vh), Optimum Sample
+#' Sizes (nh), stratum population sizes (Nh), as an object of class
+#' \code{"stratifyR"}. Use \code{\link{boundaries}}, \code{\link{allocation}},
+#' \code{\link{objective}} and \code{\link{variance}} to get the results.
+#' @author Karuna Reddy <karuna.reddy@@auckland.ac.nz>\cr MGM Khan
+#' <mgm.khan@@usp.ac.fj>
+#' @seealso \code{\link{strata.data}}, \code{\link{boundaries}},
+#' \code{\link{summary.stratifyR}}, \code{\link{compare_designs}}
 #' @examples
+#' 
 #' \dontrun{
-#' res <- strata.distr(h = 2, initval = 1.5, dist = 33,
-#'                     distr = "weibull",
-#'                     params = c(shape = 2.15, scale = 13.5),
-#'                     n = 500, N = 2000)
+#' #Assume data has initial value of 1.5, distance of 33 and follows
+#' #weibull distribution with estimated parameters as shape=2.15 and scale=13.5
+#' #To compute the OSB, OSS, etc. with fixed sample n=500, we use:
+#' res <- strata.distr(h=2, initval=1.5, dist=33, distr = "weibull",
+#' params = c(shape=2.15, scale=13.5), n=500, N=2000, cost=FALSE)
 #' summary(res)
-#' plot(res)
-#' plot(res, type = "3d")
-#' plot(res, type = "interactive")
-#'
-#' # Log-normal example
-#' res2 <- strata.distr(h = 3, initval = 1, dist = 10415,
-#'                      distr  = "lnorm",
-#'                      params = c(meanlog = 5.5, sdlog = 1.5),
-#'                      n = 500, N = 12000)
-#' summary(res2)
+#' #-------------------------------------------------------------
+#' #Assume data has initial value of 1, distance of 10415 and follows
+#' #lnorm distribution with estimated parameters as meanlog=5.5 and sdlog=1.5
+#' #To compute the OSB, OSS, etc. with fixed sample n=500, we use:
+#' res <- strata.distr(h=2, initval=1, dist=10415, distr = "lnorm",
+#' params = c(meanlog=5.5, sdlog=1.5), n=500, N=12000)
+#' summary(res)
+#' #-------------------------------------------------------------
+#' #Assume data has initial value of 2, distance of 68 and follows
+#' #gamma distribution with estimated parameters as shape=3.8 and rate=0.55
+#' #To compute the OSB, OSS, etc. with fixed sample n=500, we use:
+#' res <- strata.distr(h=2, initval=0.65, dist=68, distr = "gamma",
+#' params = c(shape=3.8, rate=0.55), n=500, N=10000)
+#' summary(res)
+#' #-------------------------------------------------------------
+#' #The function be dynamically used to visualize the the strata boundaries, 
+#' #for 2 strata, over the density (or observations) of the "mag" variable 
+#' #from the quakes data (with purrr and ggplot2 packages loaded).
+#' res <- strata.distr(h=2, initval=4, dist=2.4, distr = "lnorm", 
+#'           params = c(meanlog=1.52681032, sdlog=0.08503554), n=300, N=1000)
+#' quakes %>% 
+#'       ggplot(aes(x = mag)) +
+#'       geom_density(fill = "blue", colour = "black", alpha = 0.3) +
+#'       geom_vline(xintercept = res$OSB, linetype = "dotted", color = "red")
+#' #-------------------------------------------------------------
 #' }
-#'
-#' @seealso \code{\link{strata.data}}, \code{\link{plot.strata}},
-#'   \code{\link{summary.strata}}
-#'
-#' @references
-#' Khan, M.G.M. et al. (2008). Determining the optimum strata boundaries
-#' using mathematical programming. \emph{Survey Methodology}, \strong{34}(2),
-#' 91-102.
+#' 
 #'
 #' @export
 strata.distr <- function(h,
@@ -95,16 +120,29 @@ strata.distr <- function(h,
                           tol      = 1e-9,
                           verbose  = FALSE) {
 
-  method <- match.arg(method)
+  method <- .check_method(method, c("dp", "cobyla", "global"))
 
-  # ---- validation ------------------------------------------------------------
-  if (missing(h))       stop("Number of strata ('h') must be specified")
-  if (missing(initval)) stop("Initial value ('initval') must be specified")
-  if (missing(dist))    stop("Range ('dist') must be specified")
-  if (missing(distr))   stop("Distribution ('distr') must be specified")
-  if (missing(params))  stop("Parameters ('params') must be specified")
-  if (missing(n) && missing(N))
-    stop("'n' or 'N' must be specified")
+  # ---- input checks (v2.1-0) -------------------------------------------------
+  if (missing(initval))
+    stop("'initval' (the smallest value of the variable) must be given.", call. = FALSE)
+  if (missing(dist))
+    stop("'dist' (the range of the variable) must be given.", call. = FALSE)
+  if (missing(distr))
+    stop("'distr' (the name of the distribution) must be given.", call. = FALSE)
+  if (missing(params))
+    stop("'params' (the parameters of the distribution) must be given.", call. = FALSE)
+  if (missing(N) || is.null(N))
+    stop("'N' (the population size) must be given.", call. = FALSE)
+  .check_h(h)
+  distr <- .check_distr(distr, params, initval, dist)
+  .check_count(N, "N", min = 2L, what = " (the population size)")
+  if (N < 2 * h)
+    stop("'N' = ", N, " is too small for ", h, " strata; at least ", 2 * h,
+         " units are needed.", call. = FALSE)
+  .check_n(n, h, N = N)
+  .check_cost(cost, ch, h)
+  if (method %in% c("cobyla", "global"))
+    .check_solver_settings(n_starts, max_iter, tol, verbose)
 
   # v2.0-3: a bounded distribution must have some probability in the range
   # [initval, initval + dist]; otherwise every stratum would be empty.
@@ -125,8 +163,6 @@ strata.distr <- function(h,
   my_env$cost <- cost
 
   if (isTRUE(cost)) {
-    if (length(ch) != h)
-      stop("'ch' vector must have length equal to h")
     my_env$ch <- ch
   } else {
     my_env$ch <- rep(1, h)
@@ -203,14 +239,18 @@ strata.distr <- function(h,
                NhTot   = NhTot,
                fhTot   = fhTot)
 
+  # v2.1-0: unrounded stratum values, used by allocation() and objective()
+  out5 <- list(stratum_full   = my_env$output_full,
+               objective_full = my_env$deno_full)
+
   out4 <- list(optimality_gap  = optimality_gap,
                kkt_residuals   = kkt_resid,
                converged       = converged,
                method          = method,
                data_internal   = NULL)   # no raw data for distr pathway
 
-  result <- c(out1, out2, out3, out4)
-  class(result) <- "strata"
+  result <- c(out1, out2, out3, out4, out5)
+  class(result) <- c("stratifyR", "strata")
   result
 }
 

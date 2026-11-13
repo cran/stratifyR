@@ -2,7 +2,7 @@
 % Please edit documentation in R/strata.distr.R
 \name{strata.distr}
 \alias{strata.distr}
-\title{Stratification of Univariate Survey Population Using the Distribution}
+\title{Stratify a univariate population using a distribution}
 \usage{
 strata.distr(
   h,
@@ -24,29 +24,38 @@ strata.distr(
 )
 }
 \arguments{
-\item{h}{A numeric: denotes the number of strata to be created.}
+\item{h}{The number of strata, a whole number of at least 2.}
 
-\item{initval}{A numeric: denotes the initial value of the population.}
+\item{initval}{The smallest value of the stratification variable.}
 
-\item{dist}{A numeric: denotes distance (or range) of the population.}
+\item{dist}{The range of the variable (largest minus smallest value), a
+positive number.}
 
 \item{distr}{A character: denotes the name of the distribution that
 characterizes the population.}
 
-\item{params}{A list: contains the values of all parameters of the distribution.}
+\item{params}{A named numeric vector (or list) with the parameters of the
+distribution: \code{shape} and \code{scale} for \code{"pareto"} and
+\code{"weibull"}; \code{shape} and \code{rate} for \code{"gamma"};
+\code{rate} for \code{"exp"}; \code{min} and \code{max} for
+\code{"unif"} and \code{"rtriangle"}, with \code{mode} also for
+\code{"triangle"}; \code{mean} and \code{sd} for \code{"norm"};
+\code{meanlog} and \code{sdlog} for \code{"lnorm"}; and \code{location}
+and \code{scale} for \code{"cauchy"}.}
 
-\item{n}{A numeric: denotes the fixed total sample size.}
+\item{n}{The total sample size, a whole number between \code{h} and
+\code{N}.}
 
-\item{N}{A numeric: denotes the fixed total population size.}
+\item{N}{The population size.}
 
-\item{cost}{A logical: has default cost=FALSE. If it is a stratum-cost problem,
-cost=TRUE, with which one must provide the Ch parameter.}
+\item{cost}{A logical: has default cost=FALSE. If it is a stratum-cost
+problem, cost=TRUE, with which one must provide the Ch parameter.}
 
 \item{ch}{A numeric: denotes a vector of stratum costs.}
 
-\item{method}{Character. Optimisation method: \code{"cobyla"} (fast multi-start
-COBYLA, default), \code{"dp"} (original Dynamic Programming solver), or
-\code{"global"} (exhaustive global search).}
+\item{method}{Character. Optimisation method: \code{"cobyla"} (fast
+multi-start COBYLA, default), \code{"dp"} (original Dynamic Programming
+solver), or \code{"global"} (exhaustive global search).}
 
 \item{n_starts}{Integer. Number of random restarts for the COBYLA solver.
 Default \code{20L}. Ignored when \code{method = "dp"}.}
@@ -59,23 +68,26 @@ Default \code{2000L}.}
 \item{verbose}{Logical. Print per-start progress. Default \code{FALSE}.}
 }
 \value{
-\code{strata.distr} returns Optimum Strata Boundaries (OSB),
-stratum weights (Wh), stratum costs (Ch), stratum variances (Vh), Optimum Sample Sizes
-(nh), stratum population sizes (Nh).
+\code{strata.distr} returns Optimum Strata Boundaries (OSB), stratum
+weights (Wh), stratum costs (Ch), stratum variances (Vh), Optimum Sample
+Sizes (nh), stratum population sizes (Nh), as an object of class
+\code{"stratifyR"}. Use \code{\link{boundaries}}, \code{\link{allocation}},
+\code{\link{objective}} and \code{\link{variance}} to get the results.
 }
 \description{
-This function takes in the underlying hypothetical distribution and
-its parameter(s) of the survey variable, the initial value and
-the range of the population, the fixed sample size (n) and the
-fixed population size (N) to compute the optimum stratum boundaries
-(OSB) for a given number of strata (L), optimum sample sizes (nh),
-etc. The main idea used is from Khan et al. (2008) whereby the
-problem of stratification is fromulated into a Mathematical Programming
-Problem (MPP) using the best-fit frequency distribution and its
-parameter estimates of the data. This MPP is then solved for the
-optimal solutions using the Dynamic Programming (DP) solution procedure.
+This function takes in the underlying hypothetical distribution and its
+parameter(s) of the survey variable, the initial value and the range of the
+population, the fixed sample size (n) and the fixed population size (N) to
+compute the optimum stratum boundaries (OSB) for a given number of strata
+(L), optimum sample sizes (nh), etc. The main idea used is from Khan et al.
+(2008) whereby the problem of stratification is fromulated into a
+Mathematical Programming Problem (MPP) using the best-fit frequency
+distribution and its parameter estimates of the data. This MPP is then
+solved for the optimal solutions using the Dynamic Programming (DP) solution
+procedure.
 }
 \examples{
+
 \dontrun{
 #Assume data has initial value of 1.5, distance of 33 and follows
 #weibull distribution with estimated parameters as shape=2.15 and scale=13.5
@@ -110,10 +122,13 @@ quakes \%>\%
 #-------------------------------------------------------------
 }
 
+
 }
 \seealso{
-\code{strata.data}
+\code{\link{strata.data}}, \code{\link{boundaries}},
+\code{\link{summary.stratifyR}}, \code{\link{compare_designs}}
 }
 \author{
-Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr MGM Khan <khan_mg@usp.ac.fj>
+Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr MGM Khan
+<mgm.khan@usp.ac.fj>
 }

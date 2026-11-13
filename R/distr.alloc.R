@@ -1,5 +1,6 @@
-#' To calculate the stratum sample sizes (nh) for a fixed sample size (n) based
-#' on the hypothetical distribution of the data
+#' Allocate the sample to strata found from a distribution
+#'
+#' Calculates the stratum sample sizes (nh) for a fixed total sample size (n) from an assumed distribution.
 #'
 #' Uses OSB to compute stratum weights (Wh), variances (Vh), Neyman allocations (nh),
 #' and related totals under a *given* population distribution. Integrations are
@@ -7,6 +8,7 @@
 #'
 #' @param my_env Environment carrying all precomputed values and constants.
 #' @return Populates my_env$output, my_env$out, and totals (WhTot, NhTot, etc.)
+#' @keywords internal
 distr.alloc <- function(my_env)
 {
   # ----------------------- unpack common inputs ------------------------------
@@ -362,6 +364,10 @@ distr.alloc <- function(my_env)
     WhSh = round(whsh,  3)
   )
   
+  # v2.1-0: the same values without rounding, for the accessor functions
+  my_env$output_full <- data.frame(Wh = outWh, Vh = Vh, WhSh = whsh)
+  my_env$deno_full   <- deno
+
   # ----------------------- totals for summary() ------------------------------
   my_env$deno  <- round(deno, 3)
   my_env$WhTot <- if (distr == "unif") round(sum(Wh), 2) else round(sum(AWh), 2)

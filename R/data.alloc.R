@@ -1,6 +1,6 @@
-#' Allocate data
-#' To calculate the stratum sample sizes (nh) for a fixed sample size (n) 
-#' directly based on the data
+#' Allocate the sample to strata found from data
+#'
+#' Calculates the stratum sample sizes (nh) for a fixed total sample size (n) directly from the data.
 #'
 #' @param data Input dataset.
 #' @param my_env Environment object.
@@ -8,6 +8,7 @@
 #'
 #' Uses OSB to compute stratum weights (Wh), sample variances (Vh from data),
 #' and Neyman allocations (nh). Builds the summary table once at the end.
+#' @keywords internal
 data.alloc <- function(data, my_env)
 {
   # -------- unpack inputs / setup --------
@@ -54,6 +55,9 @@ data.alloc <- function(data, my_env)
     Vh   = round(var, 2),
     WhSh = round(whsh, 3)
   )
+  # v2.1-0: the same values without rounding, for the accessor functions
+  my_env$output_full <- data.frame(Wh = Wh, Vh = var, WhSh = whsh)
+  my_env$deno_full   <- deno
   my_env$Nh <- Nh
   
   # -------- initial Neyman allocation (sum to n) --------

@@ -1,4 +1,6 @@
-#' To re-allocate the stratum sample sizes (nh)
+#' Reallocate the stratum sample sizes
+#'
+#' Reallocates the stratum sample sizes (nh) when a stratum is asked for more units than it has.
 #'
 #' This function re-calculates or re-allocate the stratum sample sizes 
 #' (nh) after it has already been initially allocated via Neyman
@@ -16,8 +18,9 @@
 #' @return \code{} calculates and presents the new re-allocate stratum samples
 #'
 #' @author Karuna Reddy <karuna.reddy@auckland.ac.nz>\cr
-#' MGM Khan <khan_mg@usp.ac.fj>
+#' MGM Khan <mgm.khan@usp.ac.fj>
 #'
+#' @keywords internal
 realloc <- function(h, x, nh, Nh, nume, my_env){
 
 Dh <- double(h)

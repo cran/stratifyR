@@ -1,4 +1,4 @@
-# stratifyR 2.0 NAMESPACE
+# stratifyR 2.1 NAMESPACE
 
 # ---- Primary user-facing exports -------------------------------------------
 export(strata.data)
@@ -6,14 +6,34 @@ export(strata.distr)
 export(compare_designs)
 export(stratifyRApp)
 
-# ---- S3 methods -- "strata" class ------------------------------------------
-S3method(print,   strata)
-S3method(summary, strata)
-S3method(plot,    strata)
+# ---- Accessors (2.1-0) -------------------------------------------------------
+export(boundaries)
+export(allocation)
+export(objective)
+export(variance)
+export(fitted_distribution)
+
+# ---- S3 methods -- "stratifyR" class (results have class c("stratifyR", "strata"))
+S3method(print,   stratifyR)
+S3method(summary, stratifyR)
+S3method(plot,    stratifyR)
+S3method(as.data.frame, stratifyR)
+S3method(boundaries,    stratifyR)
+S3method(allocation,    stratifyR)
+S3method(objective,     stratifyR)
+S3method(variance,      stratifyR)
+S3method(fitted_distribution, stratifyR)
+
+# ---- S3 methods -- "summary.stratifyR" class (2.1-0) ------------------------
+S3method(print,         summary.stratifyR)
+S3method(as.data.frame, summary.stratifyR)
 
 # ---- S3 methods -- "compare_designs" class ---------------------------------
-S3method(compare_designs, strata)
+S3method(compare_designs, stratifyR)
+S3method(compare_designs, default)
 S3method(print, compare_designs)
+S3method(as.data.frame, compare_designs)
+S3method(objective, compare_designs)
 
 # ---- Imports ----------------------------------------------------------------
 importFrom(stats,
